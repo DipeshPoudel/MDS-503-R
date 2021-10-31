@@ -1,0 +1,12 @@
+---
+title: "Project 1"
+author: "Dipesh Poudel"
+date: "10/31/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Project 1: Import, Tidy, Transform, Visualize and Summarize API data

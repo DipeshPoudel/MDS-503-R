@@ -1,0 +1,198 @@
+---
+title: "Assignment 2"
+author: "Dipesh Poudel"
+date: "9/11/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 2
+## Creating Dataframe and using it to plot the data 
+1. Create data frame with these two column vectors in R Studio
+x = 1:30
+y = x^3
+
+```{r}
+# Creating a dataframe
+df<-data.frame(x<-c(1:30), y<-x^3)
+# Giving names to the columns
+colnames(df)<-c('x','y')
+print(df)
+```
+2. Create plot of x and y variables in R Studio and interpret it carefully
+
+```{r}
+# Plotting the values of x and y 
+plot(df$x,df$y, main = "Plot of x^3", xlab = 'Values of x', ylab = 'Values of y')
+```
+In the plot above we can see that the value of y increases exponentially. From the graph, we can see that, as value of x grows a small change in value of x increases the value of y drastically.
+
+3. Get appropriate correlation coefficient of this data in R Studio and interpret it carefully
+
+Since the relationship between the variables is not linear we should not be using pearson's correlation coefficient rather we use spearman's correlation. 
+```{r}
+cor_val<-cor(df$x,df$y,method = "spearman")
+print(cor_val)
+```
+This shows that there is perfect correlation between the variables.
+
+# Converting Non-Linear to Linear using Log
+
+4. Transform the plot to linear using appropriate mathematical function in R Studio
+```{r}
+# Using log function to transform the plot to linear
+df$a<-log(x)
+df$b<-log(y)
+plot(df$a,df$b,main = "Plot of X and Y", xlab = 'Values of log(x)', ylab = 'Values of log(y)')
+```
+
+5. Get appropriate correlation coefficient now in R Studio and interpret it carefully too
+
+Since we have converted the values into linear we can use the pearson correlation coefficient.
+```{r}
+cor_val_lin <-cor(df$a,df$b,method = "pearson")
+print(cor_val_lin)
+```
+
+This shows that there is a perfect correlation between the two variables.
+
+
+6. Create a new column vector z defined in the slide 18 of session two slide deck in R Studio
+
+```{r}
+z<-c(1,1,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,5,5,5,6,6,7)
+z
+```
+
+
+7. Create a histogram of z variable in R Studio and interpret it carefully
+```{r}
+hist(z,main="Histogram of z",xlab = "Values of z")
+```
+
+The histogram shows that the value 3 has highest frequency. It also shows a right skewed distribution. In case of skewed data median is the appropriate measure of central tendency.
+
+8. Get summary statistics of z variable in R Studio and interpret it carefully
+
+```{r}
+summary(z)
+```
+The summary provides a quick glimpse at the data. It gives us mean, median, minimum and maximum values alongside q1 and q3.
+
+
+9. Get box-plot of z variable in R Studio and interpret the result carefully.
+
+```{r}
+boxplot(z)
+```
+The box plot above shows that the median of the data is 3. There are 3 outlier points If a data point is greater than Q3+(1.5 * IQR) or less than Q1-(1.5 * IQR) then they care considered as outlier. In our case,
+IQR = Q3-Q1 = 4-3=1
+So,
+For data point less than 1.5 and greater than 5.5 are shown as ouliers indicated by 'o' symbol.
+
+10. Import “covnep_252days.csv” data in R Studio and describe the variables in it
+
+```{r}
+file_path = "covnep_252days.csv"
+data_csv = read.csv(file = file_path)
+print(head(data_csv))
+names(data_csv)
+```
+
+```{r}
+summary(data_csv)
+```
+There are seven variables in the csv file and summary of each of them is shown above.
+
+11. Create a chart with “totalCases” variable in y-axis and “date” variable in the x-axis in R Studio, describe the process leading to the creation of this chart
+
+```{r}
+# Setting the data type of the date variable as date
+data_csv$date<-as.Date(data_csv$date,format="%m/%d/%y")
+```
+```{r}
+head(data_csv)
+```
+
+```{r}
+# The totalCases column is a cumulative value column. In the first row, the value is 1 and second row the value is 0 which is not mistake we have to fix it. We will replace 0 with 1
+data_csv['totalCases'][data_csv['totalCases']==0]<-1
+plot(data_csv$date,data_csv$totalCases,main='Daily Total Cases',xlab='Date',ylab ='Total Number Cases')
+```
+The steps leading upto the plot above is described below.
+  1. Reading the data into a dataframe using `read_csv` function.
+  2. Converted the `date` variable into appropriate date data type.
+  3. Replaced 0 with 1 in `totalCases` column since in the first row, the value is 1 and second row the value is 0 which is not mistake
+
+
+12. Create histogram of “newCases” variable in R Studio and interpret it carefully
+```{r}
+hist(data_csv$newCases, main = 'Histogram of newCases',xlab = 'New Cases')
+```
+The histogram above shows highly skewed data. The ditribution of data is right skewed.
+
+
+13. Get summary statistics of “newCases” variable in R Studio and interpret it carefully
+```{r}
+summary(data_csv$newCases)
+```
+The summary shows that the median is 82.5 which means that for half of the dates we took the new cases per day was less than 82.5 and the new cases per day picked at 2020.
+
+14. Get “box and whisker” plot of “newCases” variable in R Studio and interpret it carefully
+
+```{r}
+boxplot(data_csv$newCases)
+```
+
+The plot shows that the very high new cases per day was exception and not the norm. The median of the data is very low compared to the max value which means that the for up-to mid point the number of cases till the mid point of the data was less and it later on increased exponentially. 
+
+15. Import “SAQ8.sav” data in R Studio and get frequency distribution (number and percentage of the attributes) of q01, q03, q06 and q08 variables on R Studio and interpret them carefully
+```{r}
+# Reading the SPSS file
+library(haven)
+file_path1="SAQ8.sav"
+savdf<-read_sav(file = file_path1)
+head(savdf)
+```
+```{r}
+summary(savdf)
+```
+
+```{r}
+# install.packages('plyr')
+library(plyr)
+col_list<-c('q01','q03','q06','q08')
+for (i in 1:length(col_list)){
+  cat("Frequency and Pecentage For",col_list[i],"\n")
+  df_count<-count(savdf[col_list[i]])
+  df_count$Percentage <- round(100*df_count$freq/sum(df_count$freq),3)
+  print(df_count)
+  }
+```
+
+For the given columns we calculated the Frequency and Percentage of each factor
+
+16. Import “MR_drugs.xls” data in R Studio and replicate multiple response frequency distribution as shown in the slide 35 of the session 2 slide deck
+
+```{r}
+library(readxl)
+file_path_xl = "MR_Drugs.xls"
+drug_df<-readxl::read_xls(file_path_xl)
+head(drug_df)
+```
+```{r}
+summary(drug_df)
+```
+```{r}
+drug_data_inc<-data.frame(N=colSums(drug_df[4:10]),
+                          Percent=round((colSums(drug_df[4:10])/sum(drug_df[4:10]))*100,3),
+                          PercentOfCases=round((colSums(drug_df[4:10])/nrow(drug_df[4:10]))*100,3)
+                          )
+drug_data_inc
+```
+

@@ -1,0 +1,166 @@
+---
+title: "Assignmet4_1"
+author: "Dipesh Poudel"
+date: "10/5/2021"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Web Scrapping. Getting data from Table in a website 
+
+### Getting the Data from Website
+```{r}
+library(rvest)
+library(dplyr)
+wiki_link <- "https://en.wikipedia.org/wiki/COVID-19_pandemic_in_Nepal"
+# Reading the whole website
+wiki_page <- read_html(wiki_link)
+# Getting only the tables from the whole website
+tables <- wiki_page %>% html_table(fill = TRUE)
+# Printing a sample table
+print(tables[[2]])
+# Getting the Required Table
+covid_table <- wiki_page %>%html_nodes("table") %>% .[16] %>%html_table() %>% .[[1]]
+print(head(covid_table))
+```
+### Getting the Structure of the dataframe
+```{r}
+str(covid_table)
+```
+
+As we can see all the variables (columns) have `char` data type and also the first row and second row are heading. We need to resolve this. This process of cleaning up data is called scrubbing or Tiding the data.
+
+### Removing the first row and last column
+```{r}
+#Changing column names: Column Underscore Row 1
+names(covid_table) = paste(names(covid_table), covid_table[1, ], sep = "_")
+#Removing first row
+covid_table = covid_table[-1, ]
+#Removing last column
+covid_table <- covid_table[,-14]
+#Viewing the data
+View(covid_table)
+#Checking structure of the data
+str(covid_table)
+```
+### Renaming the columns
+
+```{r}
+#Renaming the column names with underscore between spaces
+colnames(covid_table)
+#Checking column names to do correct coding below
+names(covid_table)[names(covid_table) == "Date_Date"] = "Date"
+names(covid_table)[names(covid_table) == "Confirmed cases_Total"] = "Confirmed_Cases_Total"
+names(covid_table)[names(covid_table) == "Confirmed cases_New"] = "Confirmed_Cases_New"
+names(covid_table)[names(covid_table) == "Confirmed cases_Active"] = "Confirmed_Cases_Active"
+names(covid_table)[names(covid_table) == "RT-PCR tests_Total"] = "PCR_Total"
+names(covid_table)[names(covid_table) == "RT-PCR tests_New"] = "PCR_New"
+names(covid_table)[names(covid_table) == "TPR_TPR"] = "TPR"
+names(covid_table)[names(covid_table) == "RR_RR"] = "RR"
+names(covid_table)[names(covid_table) == "CFR_CFR"] = "CFR"
+str(covid_table)
+```
+
+In the data we can see that there are "+" and "%" sign. We need to remove those before analysis.
+
+```{r}
+#Removing + from four variables
+covid_table$Confirmed_Cases_New = gsub('[+]', '',
+covid_table$Confirmed_Cases_New)
+covid_table$Recoveries_New = gsub('[+]', '', covid_table$Recoveries_New)
+covid_table$Deaths_New = gsub('[+]', '', covid_table$Deaths_New)
+covid_table$PCR_New = gsub('[+]', '', covid_table$PCR_New)
+#Removing % from three variables
+covid_table$TPR = gsub('[%]', '', covid_table$TPR)
+covid_table$RR = gsub('[%]', '', covid_table$RR)
+covid_table$CFR = gsub('[%]', '', covid_table$CFR)
+str(covid_table)
+```
+
+All the variables have `char` as data type. We need to convert the data type to numeric or integer so that we can perform analysis.
+
+### Converting chr variables as numbers and integers
+
+```{r}
+library(tidyverse)
+covid_table<-covid_table%>%mutate_at(vars(Confirmed_Cases_Total,Confirmed_Cases_New,Confirmed_Cases_Active,Recoveries_Total,Recoveries_New,Deaths_Total,Deaths_New,PCR_Total,PCR_New),as.integer)
+covid_table<-covid_table%>%mutate_at(vars(TPR,RR,CFR),as.numeric)
+str(covid_table)
+```
+While doing the type casting (conversion) the places where there was no value it is replaced by `NA`.
+
+
+```{r}
+# Creating a sequence of date from 2020 Jan 23
+date2<-seq(as.Date('2020-1-23'), by='days', length.out = 495)
+# Adding the sequence of date to the dataframe
+covid_table<-cbind(covid_table, date2)
+```
+
+```{r}
+#Plot
+plot(covid_table$date2, covid_table$Deaths_New,main = "Daily New Deaths",xlab = "Date",ylab = "Daily New Deaths")
+
+plot(covid_table$date2, covid_table$Deaths_New, ylim =range(0:250),main = "Daily New Deaths",xlab = "Date",ylab = "Daily New Deaths")
+```
+
+As we can see in the first graph, there are three data points that are out of ordinary. For now we will replace these data points using data from other sources.
+
+```{r}
+#Repalce Deaths_New of 24 Feb as 1 in the data
+covid_table[covid_table$date2=="2021-02-24", "Deaths_New"] = 1
+covid_table[covid_table$date2=="2021-02-26", "Deaths_New"] = 4
+covid_table[covid_table$date2=="2021-03-05", "Deaths_New"] = 0
+
+plot(covid_table$date2, covid_table$Deaths_New, main = "Daily New Deaths",xlab = "Date",ylab = "Daily New Deaths")
+```
+
+
+```{r}
+summary(covid_table$Deaths_New)
+```
+
+From summary above we can see that the maximum daily new deaths between 2020-01-23 and 2021-05-31 from covid in Nepal was 246. The mean median and the quartile values are low which means that the new deaths was relatively low for a long period of time and it exploded in the later time period.
+
+```{r}
+summary(covid_table$Deaths_Total)
+```
+The total number of deaths in Nepal was 984. However, this does not pain the accurate picture since the Deaths_Total column has null value from date 2020-11-02.  
+
+```{r}
+summary(covid_table$Deaths_CFR)
+```
+We got this result because we do not have column name Deaths_CFR. The correct column name is CFR.
+
+```{r}
+summary(covid_table$CFR)
+```
+
+This shows that the case fatality rate went up to 1.32%. This means that the at max 1.32% of total people who had covid died in Nepal from 2020-01-23 to 2021-05-31.
+
+## Data Modeling
+```{r}
+#Simple Moving Average fit for new deaths data!
+library(smooth)
+sma = sma(covid_table$Deaths_New, h=14, silent=FALSE)
+summary(sma)
+forecast(sma)
+plot(forecast(sma), main = "SMA(2) Forecast", ylab="Daily deaths")
+```
+
+## Importing Data From a Web API
+
+```{r}
+library(jsonlite)
+url <- "https://data.askbhunte.com/api/v1/covid/timeline"
+covidtbl <- fromJSON(txt=url, flatten=TRUE)
+colnames(covidtbl)
+summary(covidtbl)
+```
+

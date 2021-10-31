@@ -1,0 +1,444 @@
+---
+title: "Assignment3"
+author: "Dipesh Poudel"
+date: "9/23/2021"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# A3 - Vectorization, Functions, Pipes, Missing Values and Markdown in R
+
+**Instructions**
+
+Replicate all the examples/exercises used in the class slides of session 4 and session 5 with interpretations
+
+## Vector Opration in R
+```{r}
+a<-1:10
+b<-1:10
+```
+
+** Adding a and b vectors
+```{r}
+a+b
+```
+When we give `a+b` command it performs element wise sum between two vectors. The first element of vector a is added with first element of vector b and so on.
+
+What will happen when you type these two codes in R/R studio and
+run:
+• y <- seq(1, 10, length.out = 5)
+• (y <- seq(1, 10, length.out = 5))
+```{r}
+y <- seq(1, 10, length.out = 5)
+```
+
+```{r}
+(y <- seq(1, 10, length.out = 5))
+```
+When we run the first command the the result is stored in variable y and in in second case the result is also printed.
+
+## Vector Operation Multiplication
+a <- 1:10
+b <- 5
+#Vector length = 10
+#Vector length = 1
+• What will happen if we type: a * b in R console?
+```{r}
+a <- 1:10
+b <- 5
+a*b
+```
+5 i.e `b` is multiplied with each element of vector.
+
+Define:
+• a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]     #Check class of ‘a’
+• b = [5]                                 #Check class of ‘b’
+• c = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]    #Check class of ‘c’
+
+```{r}
+a<-c(1:10)
+class(a)
+b<-c(5)
+class(b)
+c<-c(2:11)
+class(c)
+```
+
+```{r}
+ac<-cbind(a,c)
+ac
+```
+```{r}
+acb<-ac*b
+acb
+```
+* Get:
+* d = arithmetic mean by cases (row means) #Hint: Use “apply” function
+* acbd = add new variable d in the acb matrix #Check class of ‘acbd’ object
+* Summarize all the variables of ‘acbd’ object and interpret the results carefully!
+```{r}
+d<-apply(acb, MARGIN=1, FUN = mean)
+print(d)
+```
+The apply function applies a given function to the entire row or column which is controlled by `MARGIN` parameter. This method is faster than loop.
+```{r}
+# Adding New Variable in the Matrix
+acbd<-cbind(acb,d)
+print(acbd)
+```
+
+```{r}
+class(acbd)
+```
+We added a the vector as a new column to a matrix which resulted in a new matrix with three columns.
+```{r}
+summary(acbd)
+```
+The summary function gives us the statistical summary of each of the column. The summary contains the minimum and maximum value, mean and median along with 1st and 3rd quartile.
+
+## Vector Recycling
+
+```{r}
+# Creating two vectors a and b
+a<-1:10
+b<-1:5
+
+# Adding these two vectors
+(a+b)
+```
+The vector `a` has 10 elements and vector `b` has 5 element. When we added these vector the result is of same length of a i.e 10 elements. The element of the smaller vector is repeated until the operation results in the size of larger vector.
+
+If the length of the larger vector(one with more number of elements) is not the multiple of the smaller vector then we get warning. Let us try with an example
+
+```{r}
+a<-1:10
+b<-1:7
+
+# Adding a and b
+
+(a+b)
+```
+
+Here we got a warning saying that "longer object length is not a multiple of shorter object length". However the calculation was carried out up to the point where length of result was equal to the length of larger vector.
+
+
+## Function in R
+
+An example of a user defined function is shown below
+```{r}
+best_practice <- c("Let", "the", "computer", "do", "the", "work")
+print_words <- function(sentence) {
+print(sentence[1])
+print(sentence[2])
+print(sentence[3])
+print(sentence[4])
+print(sentence[5])
+print(sentence[6])
+}
+
+print_words(best_practice)
+```
+
+In this approach, inside the function we are repeating same step `print(sentence[i])` where `i` is the index. It works for the example we have given but for a vector is smaller number of elements we will get `NA` and for a vector with larger number element we will miss the element
+```{r}
+# Vector with 5 Elements
+best_practice <- c("Let", "the", "computer", "do", "work")
+print_words(best_practice)
+```
+In this example we got `NA` because there was no 6th element.
+
+```{r}
+best_practice <- c("Let", "the", "computer", "do", "the", "work","properly")
+print_words(best_practice)
+```
+
+ In this example we did not get the last element.
+ 
+## Deleting element from a vector
+ 
+ We can use negative index to remove element from vector
+```{r}
+best_practice <- c("Let", "the", "computer", "do", "the", "work")
+best_practice
+best_practice[-6]
+```
+## Improving the function with Loop
+ 
+```{r}
+print_words<-function(sentence){
+  for(word in sentence){
+    print(word)
+  }
+  }
+
+print_words(best_practice)
+print_words(best_practice[-6])
+```
+ 
+## Conditional Statements
+
+In conditional statement we check the condition and execute the corresponding statement when the condition is true. 
+```{r}
+y<-10
+if (y < 20) {
+x <- "Too low"
+} else {
+x <- "Too high"
+}
+print(x)
+```
+ 
+ In this example `y` is less than 20 so the value of x became "Too low". Now let us assign `y` greater than 20 and run the same code.
+ 
+```{r}
+y<-50
+if (y < 20) {
+x <- "Too low"
+} else {
+x <- "Too high"
+}
+print(x)
+```
+ 
+ Here we got too high because the value of y is 50 which is not smaller than 20 so statement in else block was executed.
+ 
+## Multiple Conditions: If, else if, else
+
+```{r}
+temp=5
+if (temp <= 0) {
+"freezing"
+} else if (temp <= 10) {
+"cold"
+} else if (temp <= 20) {
+"cool"
+} else if (temp <= 30) {
+"warm"
+} else {
+"hot"
+}
+```
+In this example, 5 is assigned to temp. We have multiple condition so we are using if else-if else condition. After the first matching condition is met the corresponding code block is executed which resulted in we getting "cold".
+
+# Pipe Operators
+
+```{r}
+#Initialize "x"
+x <- c(0.109, 0.359, 0.63, 0.996, 0.515, 0.142, 0.017, 0.829, 0.907) 
+
+#Compute logarithm of "x"
+#Return lagged differences
+#compute the exponential fuction and round the result with one decimal
+
+round(exp(diff(log(x))),1)
+
+```
+
+Using pipe operation to computer the same operation
+
+```{r}
+library(magrittr)
+x %>% log() %>%
+  diff() %>%
+  exp() %>%
+  round(1)
+```
+In first case we used nested function which can be difficult to track when the number of function increases. In second case we have used pipe operation which makes code much more readable and track able as well. 
+
+## Different Pipe Operators
+```{r}
+x <- rnorm(100)
+print(x)
+(x %<>% abs %>% sort)
+print(x)
+```
+In the code above, we created 100 random numbers with normal distribution and stored in variable `x`. Then, we applied pipe operator `<%>` to apply the functions store the result in x variable.
+
+```{r}
+#Other pipe operators 2
+rnorm(200) %>%
+  matrix(ncol = 2) %T>%
+  plot %>% 
+  colSums
+```
+
+In above example we passed the matrix obtained from the prior operation to the next function using `T` pipe operator.
+
+```{r}
+#The above code is a shortcut for this code:
+rnorm(200) %>%
+  matrix(ncol = 2) %T>%
+  { plot(.); . } %>% 
+  colSums
+
+```
+
+```{r}
+#Other pipe operator 3
+data.frame(z = rnorm(100)) %$% 
+  ts.plot(z)
+```
+
+Here we have a time series plot created using 100 random values that follows normal distribution. We have used exposition operator to pass data to time series plot function. 
+
+```{r}
+#Load the package, install if require!
+# install.packages("babynames")
+library(babynames)
+library(dplyr)
+#Load the data:
+data(babynames)
+```
+
+```{r}
+# Count how many young boys with the name "Taylor" are born
+sum(select(filter(babynames,sex=="M",name=="Taylor"),n))
+# Do the same but now with `%>%`
+babynames%>%filter(sex=="M",name=="Taylor")%>%
+  select(n)%>%
+  sum
+
+```
+In the example above we counted the number of male babies with name "Taylor" using tested function and pipe operator method. We used `filter` function from `dplyr` package for filtering the data based on the given condition. 
+
+```{r}
+#Assigning new variable and using compound assignment pipe operator:
+# Load in the Iris data
+iris <- read.csv(url("http://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"), header = FALSE)
+
+# Add column names to the Iris data
+names(iris) <- c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width", "Species")
+
+# Compute the square root of `iris$Sepal.Length` and assign it to the new variable
+iris$Sepal.Length.SQRT <- 
+  iris$Sepal.Length %>%
+  sqrt()
+```
+
+Here we got the data from web and changed the column names. Then we added a new column `Sepal.Length.SQRT` which is square root of sepal length.
+
+```{r}
+#Compound pipe operator:
+# Compute the square root of `iris$Sepal.Length` and assign it to the same variable
+iris$Sepal.Length %<>% sqrt
+```
+
+```{r}
+#The tee operator:
+set.seed(123)
+rnorm(200) %>%
+  matrix(ncol = 2) %T>%
+  plot %>% 
+  colSums
+```
+
+Here the `Tee` operator helps to pass the data to the next arguement i.e plot and colSums.
+
+## The “dplyr” package
+
+**With “group_by” function of “base” but Without “dplyr” package and pipe operators**
+
+```{r}
+# Install package if not installed
+# install.packages("hflights")
+library(hflights)
+#Without pipe operators:
+grouped_flights <- group_by(hflights, Year, Month, DayofMonth)
+# Using Seect from dplyr
+```
+The `hflights` contains the  dataset of all flights departing from Houston airports IAH (George Bush Intercontinental) and HOU (Houston Hobby).
+
+We grouped the data by Year, Month and Day of the Month and assigned the result to `grouped_flights`.
+
+```{r}
+flights_data <- select(grouped_flights, Year:DayofMonth, ArrDelay, DepDelay) 
+```
+
+Using the dplyr package's select we selected the some columns and created a new dataframe. 
+
+```{r}
+summarized_flights <- summarise(flights_data, 
+                                arr = mean(ArrDelay, na.rm = TRUE), 	#Remove missing data!
+                                dep = mean(DepDelay, na.rm = TRUE)) 	#Remove missing data!
+```
+We took mean of ArrDelay, DepDelay removing the missing data and then overiding the original variable with the new one
+```{r}
+final_result <- filter(summarized_flights, arr > 30 | dep > 30) 
+final_result
+```
+In the final result we have filtered the data whose average arrival and departure delay is greater than 30
+
+**Same operation as above with Pipe Operators**
+
+```{r}
+hflights %>% group_by(Year, Month, DayofMonth) %>% 
+  select(Year:DayofMonth, ArrDelay, DepDelay) %>% 
+  summarise(arr = mean(ArrDelay, na.rm = TRUE), dep = mean(DepDelay, na.rm = TRUE)) %>% 
+  filter(arr > 30 | dep > 30)
+```
+```{r}
+#ARRNGE data with dplyr and pipe operators:
+#Ascending order
+iris %>%
+  select(starts_with("Sepal")) %>%
+  filter(Sepal.Length >=2.0) %>%
+  arrange(Sepal.Length)		#Sort data in ascending order
+```
+In above code, we used the arrange and filter function from dplyr to filter the data with sepal length greater or equal to 2.5 and sorted the data by sepal length in ascending order.
+
+```{r}
+#Descending order:
+iris %>%
+  select(starts_with("Sepal")) %>%
+  filter(Sepal.Length >=2.5) %>%
+  arrange(desc(Sepal.Length))		#Sort data in descending order
+```
+
+In above code, we used the arrange and filter function from dplyr to filter the data with sepal length greater or equal to 2.5 and sorted the data by sepal length in ascending order.
+
+```{r}
+#MUTATE with dplyr and pipe operators:
+iris %>%
+  select(contains("Sepal")) %>%
+  mutate(Sepal.Area = Sepal.Length * Sepal.Width)
+
+iris %>%
+  select(ends_with("Length")) %>%
+  mutate(Length.Diff = Sepal.Length - Petal.Length)
+
+```
+The mutate function was used to create new columns using the operation specified. Contains is used for checking if the column names contains the given word and ends_with checks if the column names ended with given word.
+
+```{r}
+iris %>%
+  select(ends_with("Length"), Species) %>%
+  rowwise() %>%
+  mutate(Length.Diff = Sepal.Length - Petal.Length)
+```
+
+```{r}
+iris %>%
+  select(contains("Sepal"), Species) %>%
+  transmute(Sepal.Area = Sepal.Length * Sepal.Width)
+```
+The `transmute()` function adds new variable and drops existing ones.
+
+## R markdown with knitr and kable, 
+```{r kable, results = 'asis'}
+knitr::kable(head(mtcars), digits = 2, align = c(rep("l", 4), rep("c", 4), rep("r", 4)))
+```
+
+The `kable()` function from `knitr` package to create tables in LaTeX, HTML, Markdown and reStructuredText.
+
+```{r xtable, results='asis'}
+library(xtable)
+print(xtable(head(mtcars)),type = "html")
+```
+
+We used xtable packgae to Convert an R object in our case the small portion of mcars dataset to an xtable object, which can then be printed as a LaTeX or HTML table.
+
