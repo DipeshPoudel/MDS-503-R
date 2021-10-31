@@ -10,3 +10,25 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Project 1: Import, Tidy, Transform, Visualize and Summarize API data
+```{r}
+library(jsonlite)
+url<-'https://data.askbhunte.com/api/v1/covid'
+covidtbl<-fromJSON(url,flatten=TRUE)
+summary(covidtbl)
+```
+Checking For Duplicate
+```{r}
+# Finding the Numbers of Unique ids 
+length(unique(covidtbl$id))
+
+```
+
+
+```{r}
+length(unique(covidtbl$id)) == nrow(covidtbl)
+
+```
+```{r}
+
+```
+
