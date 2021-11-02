@@ -10,25 +10,37 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Project 1: Import, Tidy, Transform, Visualize and Summarize API data
+
+## Loading the Data from API
+1. Import this JSON API data "https://data.askbhunte.com/api/v1/covid" using "jsonlite" or similar package Save the imported data as "covidtbl" data frame in R (Hint: use "flatten = TRUE" after 'fromJSON' function availble in jsonlite package)
+
 ```{r}
 library(jsonlite)
 url<-'https://data.askbhunte.com/api/v1/covid'
 covidtbl<-fromJSON(url,flatten=TRUE)
-summary(covidtbl)
+covidtbl<-subset(covidtbl,select = -c(relatedTo,point.type,point.coordinates))
+print(summary(covidtbl))
 ```
-Checking For Duplicate
+## Checking For Duplicate
+3. Check if there are duplicate cases in the data using "id" variable, remove duplicate cases, if found, using R base functions: duplicated or unique (read about it and use it carefully) 
 ```{r}
 # Finding the Numbers of Unique ids 
-length(unique(covidtbl$id))
-
+print(length(unique(covidtbl$id)))
+# Number of total number of rows 
+print(nrow(covidtbl))
 ```
+Since the number of unique ids and total number of columns are same we can say that there are no duplicates rows based on Id
 
+## Cleaning and Analyzing 
+4. Clean the "gender" variable and show the number and percentage of males and females in the data (Hint: you can use table function and prop.table functions)
+### Finding the unique values in the gender variable
+```{r}
+unique(covidtbl$gender)
+```
+As we can see from the result above there are two issues. First we need to take care of missing values and second we need to make data of same case.
 
 ```{r}
-length(unique(covidtbl$id)) == nrow(covidtbl)
-
-```
-```{r}
-
+# Finding Percentage of NULL Values
+dim(covidtbl)
 ```
 
