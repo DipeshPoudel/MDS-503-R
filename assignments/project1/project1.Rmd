@@ -31,16 +31,92 @@ print(nrow(covidtbl))
 ```
 Since the number of unique ids and total number of columns are same we can say that there are no duplicates rows based on Id
 
-## Cleaning and Analyzing 
+## Cleaning and Analyzing gender variable 
 4. Clean the "gender" variable and show the number and percentage of males and females in the data (Hint: you can use table function and prop.table functions)
 ### Finding the unique values in the gender variable
 ```{r}
 unique(covidtbl$gender)
 ```
-As we can see from the result above there are two issues. First we need to take care of missing values and second we need to make data of same case.
+### Repacing NA with unknown
 
 ```{r}
-# Finding Percentage of NULL Values
-dim(covidtbl)
+covidtbl$gender[is.na(covidtbl$gender)] <- 'unknown'
+unique(covidtbl$gender)
+```
+### Making the values of same case
+```{r}
+covidtbl$gender<-tolower(covidtbl$gender)
+```
+
+### Finding the total number of male and female and percentage
+
+```{r}
+# Finding the Numbers of Male, Female and Unknown
+ugender<-as.data.frame(table(covidtbl$gender))
+ugender$percentage<-(ugender$Freq/sum(ugender$Freq))*100
+ugender
+```
+
+## Cleaning and Analuzing Age Variable
+6. Clean the "age" variable and show the summary statistics of the age variable and interpret the results carefully (Search the online newspapers and clean the age data, if required)
+
+### Dealing with the NA values
+
+
+```{r}
+summary(covidtbl$age)
+```
+From the summary above we can see that there two issues that we need to deal with. First one is the max age is 523 which is impossible and secod one is we have Null Value. 
+```{r}
+library(dplyr)
+filter(covidtbl,age>=100)
+```
+As we can see there is only one row that is causing the issue. We will remove this row.
+
+```{r}
+# Making a copy Just in case something goes wrong
+covidtbl_rm<-covidtbl
+covidtbl_rm<-covidtbl_rm[!(covidtbl_rm$age>=200),]
+```
+
+
+```{r}
+hist(covidtbl_rm$age,main = "Histogram of Age After Removing Outlier",xlab = "Age")
+```
+Based on the histogram we will use median to replace the missing value.
+```{r}
+covidtbl_rm$age[is.na(covidtbl_rm$age)]<-median(covidtbl_rm$age,na.rm=TRUE)
+```
+```{r}
+summary(covidtbl_rm$age)
+hist(covidtbl_rm$age,main = "Histogram of Age",xlab = "Age")
+```
+## Transforming the continous variable into factors
+7. Transform cleaned age variable into broad age groups i.e. <15, 15-59, 60+ years, define it as factor variable and get number and percentage of this variable and interpret it carefully
+
+```{r}
+covidtbl_rm<-within(covidtbl_rm,{
+  age.cat<-NA
+  age.cat[age<15]<-"<15"
+  age.cat[age>=15 & age<60]<-'15-59'
+  age.cat[age>=60]<-'60+'
+})
+```
+```{r}
+covidtbl_rm$age.cat <- factor(covidtbl_rm$age.cat, levels = c("<15", "15-59", "60+"))
+summary(covidtbl_rm$age.cat)
+```
+
+```{r}
+uage<-as.data.frame(table(covidtbl_rm$age.cat))
+uage$percentage<-(uage$Freq/sum(uage$Freq))*100
+uage
+```
+
+As we can see that the about 99.5% of reported cases were in the age group of 15 to 59. It seems realistic as the covid in Nepal first broke out in the cluster of people who worked outside and country and returned after pandamic. Most test was also done in the same cluster.
+
+## Finding the Difference between reported date and death date
+```{r}
+
 ```
 
