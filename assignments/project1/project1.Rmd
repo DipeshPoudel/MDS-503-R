@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(jsonlite)
 url<-'https://data.askbhunte.com/api/v1/covid'
 covidtbl<-fromJSON(url,flatten=TRUE)
+# Removing Some Columns that we do not need for Analysis 
 covidtbl<-subset(covidtbl,select = -c(relatedTo,point.type,point.coordinates))
 print(summary(covidtbl))
 ```
@@ -58,7 +59,7 @@ ugender<-as.data.frame(table(covidtbl$gender))
 ugender$percentage<-(ugender$Freq/sum(ugender$Freq))*100
 ugender
 ```
-
+From the table above we can see that 27.50% of reported cases were female and 72.41% of reported cases were male.
 ## Cleaning and Analuzing Age Variable
 6. Clean the "age" variable and show the summary statistics of the age variable and interpret the results carefully (Search the online newspapers and clean the age data, if required)
 
@@ -68,7 +69,7 @@ ugender
 ```{r}
 summary(covidtbl$age)
 ```
-From the summary above we can see that there two issues that we need to deal with. First one is the max age is 523 which is impossible and secod one is we have Null Value. 
+From the summary above we can see that there two issues that we need to deal with. First one is the max age is 523 which is impossible and second one is we have Null Value. 
 ```{r}
 library(dplyr)
 filter(covidtbl,age>=100)
@@ -78,39 +79,50 @@ As we can see there is only one row that is causing the issue. We will remove th
 ```{r}
 # Making a copy Just in case something goes wrong
 covidtbl_rm<-covidtbl
-covidtbl_rm<-covidtbl_rm[!(covidtbl_rm$age>=200),]
+# covidtbl_rm<-covidtbl_rm[!(covidtbl_rm$age>=200),]
+covidtbl[covidtbl$id==532, "age"] <- median(covidtbl$age,na.rm=TRUE)
 ```
 
 
 ```{r}
-hist(covidtbl_rm$age,main = "Histogram of Age After Removing Outlier",xlab = "Age")
+hist(covidtbl_rm$age,main = "Histogram of Age After Dealing Outlier",xlab = "Age")
 ```
 Based on the histogram we will use median to replace the missing value.
 ```{r}
-covidtbl_rm$age[is.na(covidtbl_rm$age)]<-median(covidtbl_rm$age,na.rm=TRUE)
+covidtbl$age[is.na(covidtbl$age)]<-median(covidtbl$age,na.rm=TRUE)
 ```
 ```{r}
 summary(covidtbl_rm$age)
 hist(covidtbl_rm$age,main = "Histogram of Age",xlab = "Age")
 ```
+
+```{r}
+summary(covidtbl$age)
+```
+
+As we can see from the summary, we now do not have outlier and NA values in the age variable.
+
 ## Transforming the continous variable into catagorical
 7. Transform cleaned age variable into broad age groups i.e. <15, 15-59, 60+ years, define it as factor variable and get number and percentage of this variable and interpret it carefully
 
+### Creating a new categorical variable from age 
+
 ```{r}
-covidtbl_rm<-within(covidtbl_rm,{
+covidtbl<-within(covidtbl,{
   age.cat<-NA
   age.cat[age<15]<-"<15"
   age.cat[age>=15 & age<60]<-'15-59'
   age.cat[age>=60]<-'60+'
 })
 ```
+### Converting the new variable into factor.
 ```{r}
-covidtbl_rm$age.cat <- factor(covidtbl_rm$age.cat, levels = c("<15", "15-59", "60+"))
-summary(covidtbl_rm$age.cat)
+covidtbl$age.cat <- factor(covidtbl$age.cat, levels = c("<15", "15-59", "60+"))
+summary(covidtbl$age.cat)
 ```
 
 ```{r}
-uage<-as.data.frame(table(covidtbl_rm$age.cat))
+uage<-as.data.frame(table(covidtbl$age.cat))
 uage$percentage<-(uage$Freq/sum(uage$Freq))*100
 uage
 ```
@@ -120,20 +132,20 @@ As we can see that the about 99.5% of reported cases were in the age group of 15
 ## Finding difference between recovered and reported dates
 8. Find the number of days between recovered and reported dates (define it as: diff1 variable), clean it if required, and get the summary statistics of this variable and interpret it carefully
 
-### Converting the variables into required type
+### Converting the variables into date type
 
 ```{r}
-covidtbl_rm$reportedOn<-as.Date(covidtbl_rm$reportedOn)
-covidtbl_rm$recoveredOn<-as.Date(covidtbl_rm$recoveredOn)
+covidtbl$reportedOn<-as.Date(covidtbl$reportedOn)
+covidtbl$recoveredOn<-as.Date(covidtbl$recoveredOn)
 ```
 ### Getting the difference in days
 ```{r}
-covidtbl_rm$diff1<-as.numeric(difftime(covidtbl_rm$recoveredOn, covidtbl_rm$reportedOn, units = "days"))
+covidtbl$diff1<-as.numeric(difftime(covidtbl$recoveredOn, covidtbl$reportedOn, units = "days"))
 ```
 
 ### Getting of summary
 ```{r}
-summary(covidtbl_rm$diff1)
+summary(covidtbl$diff1)
 ```
 From the summary we can see that it took 27 days on average for people to recover from covid. The maximum number of days was 102 and minimum was 0.
 
@@ -141,20 +153,21 @@ From the summary we can see that it took 27 days on average for people to recove
 9. Find the number of days between deaths and reported dates (define it as: diff2 variable), clean it if required, and get the summary statistics of this variable and interpret it carefully
 ### Converting the deathOn and reportedOn to date
 ```{r}
-covidtbl_rm$deathOn<-as.Date(covidtbl_rm$deathOn)
+covidtbl$deathOn<-as.Date(covidtbl$deathOn)
 ```
 ### Getting the difference in days
 ```{r}
-covidtbl_rm$diff2<-as.numeric(difftime(covidtbl_rm$deathOn, covidtbl_rm$reportedOn, units = "days"))
+covidtbl$diff2<-as.numeric(difftime(covidtbl$deathOn, covidtbl$reportedOn, units = "days"))
 ```
 ### Geting the Summary of New variable
 ```{r}
-summary(covidtbl_rm$diff2)
+summary(covidtbl$diff2)
 ```
 The Minimum value is -8 which is kind of odd. Lets check the rows with negative difference.
 
 ```{r}
-filter(covidtbl_rm,diff1<0)
+library(dplyr)
+filter(covidtbl,diff2<0)
 ```
 There are 29 rows where the value of diff1 is negative. This is possible since there were few cases in which the cause of death was determined to be covid after the person was dead and no test was done beforehand.
 
@@ -162,20 +175,34 @@ There are 29 rows where the value of diff1 is negative. This is possible since t
 ## Appropriate Measure of Central Tendency and Dispersion
 10. Which measures of central tendency and dispersion is most appropriate for the age, diff1 and diff2 variables? Why? Justify the use the appropriate measure of central tendency and dispersion by creating and interpreting the histogram and boxplot for the age, diff1 and diff2 variables and their careful interpretations
 
+### Histogram for Age,diff1 and diff2
+```{r}
+hist(covidtbl$age,main = "Histogram of Age", xlab = "Age")
+hist(covidtbl$diff1,main = "Histogram of diff1",xlab="Diff1")
+hist(covidtbl$diff2,main = "Histogram of diff2", xlab = "Diff2")
+```
+### Boxplot for Age,diff1 and diff2
+```{r}
+boxplot(covidtbl$age,main="Boxplot of Age")
+boxplot(covidtbl$diff1, main="Boxplot of diff1")
+boxplot(covidtbl$diff2, main="Boxplot of diff2")
+```
+Analyzing the graphs, we can see that the data is skewed for age, diff1 and diff2 so we have to use median for central tendency and Inter Quartile Range for IQR.
+
 ## Analysis of current state variable
 11. Show the number and percentage of the "current state" variable and interpret it carefully
 
 ```{r}
-unique(covidtbl_rm$currentState)
+unique(covidtbl$currentState)
 # Replacing the Missing value with Unknown
-covidtbl_rm$currentState[is.na(covidtbl_rm$currentState)] <- 'unknown'
-unique(covidtbl_rm$currentState)
-csper<-as.data.frame(table(covidtbl_rm$currentState))
+covidtbl$currentState[is.na(covidtbl$currentState)] <- 'unknown'
+unique(covidtbl$currentState)
+csper<-as.data.frame(table(covidtbl$currentState))
 csper$percentage<-(csper$Freq/sum(csper$Freq))*100
 csper
 ```
 
-The result shows us that for the 98.20 percentage of reported cases are not traced by the authority and we do not know the status of these people. 
+From the result we can see that out of 77817 observations (reported case of covid) 72.5% recovered from the covid and 0.6% people died are other cases are still active as of date of collection the data.  
 
 ## Analyzing the isReinfected variable
 12. Show the number and percentage of the "isReinfected" variable, what percentage of cases were re-infected in Nepal at the given time period in the database? Was it realistic?
@@ -212,7 +239,7 @@ unationality$percentage<-(unationality$Freq/sum(unationality$Freq))*100
 unationality
 ```
 
-In this variable more than 99 percent of data was missing.
+In this variable more than 99 percent of data was missing which we replaced with "Unknown".
 
 ## Cross Tabulation of province and current status
 15. Show cross-tabulation of province (row variable) and current status (column variable) with row percentage and interpret the result carefully (table and prop.table can be used!)
@@ -226,17 +253,18 @@ In this variable more than 99 percent of data was missing.
 ## scatterplot of province (x-axis) and cleaned age (y-axis)
 18. Show the scatterplot of province (x-axis) and cleaned age (y-axis) and get the appropriate correlation coefficient for this bi-variate data and interpret the result carefully
 ```{r}
-plot(covidtbl_rm$province,covidtbl_rm$age)
+plot(covidtbl$province,covidtbl$age, main = "Scatter Plot of province and age", xlab = "Province", ylab = "Age")
 ```
 
-
+From the scatterplot above we can see that in Province 2, 3 and 4 older population got infected. In all the provience people from 15 to 60 got more infected.
 ## Show the scatterplot of age and diff1 
 19. Show the scatterplot of age (x-axis) and diff1 (y-axis) and get the appropriate correlation coefficient for this bi-variate data and interpret the result carefully
 
 ```{r}
-plot(covidtbl_rm$age,covidtbl_rm$diff1)
+plot(covidtbl$age,covidtbl$diff1, main = "Scatter Plot of Age and Diff1", xlab = "Age", ylab = "Diff1")
 ```
-
+From the scatter plot we can see that the number of days between recovered and reported dates
+was higher for the age group around 35 to 40. This is to be expected as the average age was around 35.
 
 ## SWOT Analysis)
 20. Summarize your learning using SWOT analysis to complete this project in a 2x2 table; be honest and specific so that I can learn from you too
