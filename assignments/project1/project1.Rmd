@@ -2,7 +2,10 @@
 title: "Project 1"
 author: "Dipesh Poudel"
 date: "10/31/2021"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,6 +18,8 @@ knitr::opts_chunk$set(echo = TRUE)
 1. Import this JSON API data "https://data.askbhunte.com/api/v1/covid" using "jsonlite" or similar package 
 
 2. Save the imported data as "covidtbl" data frame in R (Hint: use "flatten = TRUE" after 'fromJSON' function availble in jsonlite package)
+3. Check whether the saved "covidtbl" data passes the three conditions of the "tidy" data or not! If not, make it a tidy data with explanations of rows, columns and cells in the data
+
 
 ```{r}
 library(jsonlite)
@@ -24,6 +29,18 @@ covidtbl<-fromJSON(url,flatten=TRUE)
 covidtbl<-subset(covidtbl,select = -c(relatedTo,point.type,point.coordinates))
 print(summary(covidtbl))
 ```
+We removed unused columns relatedTo,point.type,point.coordinates which can make analysis little bit difficult.
+
+From Summary we see that we the date data is in string we need to change it to date.
+
+There are some columns with NULL values we will deal with them on need basis.
+
+```{r}
+covidtbl$reportedOn<-as.Date(covidtbl$reportedOn)
+covidtbl$recoveredOn<-as.Date(covidtbl$recoveredOn)
+covidtbl$deathOn<-as.Date(covidtbl$deathOn)
+```
+
 ## Checking For Duplicate
 4. Check if there are duplicate cases in the data using "id" variable, remove duplicate cases, if found, using R base functions: duplicated or unique (read about it and use it carefully) 
 ```{r}
@@ -132,12 +149,7 @@ As we can see that the about 99.5% of reported cases were in the age group of 15
 ## Finding difference between recovered and reported dates
 8. Find the number of days between recovered and reported dates (define it as: diff1 variable), clean it if required, and get the summary statistics of this variable and interpret it carefully
 
-### Converting the variables into date type
 
-```{r}
-covidtbl$reportedOn<-as.Date(covidtbl$reportedOn)
-covidtbl$recoveredOn<-as.Date(covidtbl$recoveredOn)
-```
 ### Getting the difference in days
 ```{r}
 covidtbl$diff1<-as.numeric(difftime(covidtbl$recoveredOn, covidtbl$reportedOn, units = "days"))
@@ -151,10 +163,7 @@ From the summary we can see that it took 27 days on average for people to recove
 
 ## Finding the Difference between reported date and death date
 9. Find the number of days between deaths and reported dates (define it as: diff2 variable), clean it if required, and get the summary statistics of this variable and interpret it carefully
-### Converting the deathOn and reportedOn to date
-```{r}
-covidtbl$deathOn<-as.Date(covidtbl$deathOn)
-```
+
 ### Getting the difference in days
 ```{r}
 covidtbl$diff2<-as.numeric(difftime(covidtbl$deathOn, covidtbl$reportedOn, units = "days"))
@@ -244,12 +253,29 @@ In this variable more than 99 percent of data was missing which we replaced with
 ## Cross Tabulation of province and current status
 15. Show cross-tabulation of province (row variable) and current status (column variable) with row percentage and interpret the result carefully (table and prop.table can be used!)
 
+
+```{r}
+#library(sjPlot)
+#sjPlot::tab_xtab(var.row = covidtbl$province, var.col = covidtbl$currentState, title = "Cross Tabulation of Provience and Current Status", show.row.prc = TRUE)
+```
+![Cross Tabulation](images/ct_prov_cs.png)
+From the cross tabulation we can see that the province wise distribution of current state variable. In province 1 we can see that the over 90% of the cases are recovered. The death rate for the province 2 is highest among all the province.
 ## Cross Tabulation of sex and current status
 16. Show the cross-tabulation of sex (row variable) and current status (column variable) with row percentage and interpret the result carefully
-
+```{r}
+#library(sjPlot)
+#sjPlot::tab_xtab(var.row = covidtbl$gender, var.col = covidtbl$currentState, title = "Cross Tabulation of Gender and Current Status", show.row.prc = TRUE)
+```
+![Cross Tabulation of Gender and Current Status](images/ct_gender_cs.png)
+From above cross tabulation we can see that death rate was higher in female population however the total case number is higher in the males.
 ## cross-tabulation of age groups (row variable) and current status
 17. Show the cross-tabulation of broad age groups (row variable) and current status (column variable) with row percentage and interpret the result carefully
-
+```{r}
+#library(sjPlot)
+#sjPlot::tab_xtab(var.row = covidtbl$age.cat, var.col = covidtbl$currentState, title = "Cross Tabulation of Age Group and Current Status", show.row.prc = TRUE)
+```
+![Cross Tabulation of Age Group and Current Status](images/ct_age_cs.png)
+From the table above we can see that the death rate is very high in the 60+ age group. This also shows that the very high (93.5%) of children recovered from covid.
 ## scatterplot of province (x-axis) and cleaned age (y-axis)
 18. Show the scatterplot of province (x-axis) and cleaned age (y-axis) and get the appropriate correlation coefficient for this bi-variate data and interpret the result carefully
 ```{r}
@@ -268,3 +294,4 @@ was higher for the age group around 35 to 40. This is to be expected as the aver
 
 ## SWOT Analysis)
 20. Summarize your learning using SWOT analysis to complete this project in a 2x2 table; be honest and specific so that I can learn from you too
+
