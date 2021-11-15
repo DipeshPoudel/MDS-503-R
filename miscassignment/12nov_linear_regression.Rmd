@@ -1,0 +1,35 @@
+---
+title: "QLR And CLR"
+author: "Dipesh Poudel"
+date: "11/15/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Linear Regression
+
+```{r mtcars}
+df<-mtcars
+
+```
+## Scatterplotwith “abline” from a linear regression model:
+
+```{r}
+plot(df$hp, df$disp, main = "Scatterplot with abline", xlab= "Horse Power", ylab= "Displacement")
+reg_mod<-lm(df$disp~ df$hp)
+abline(reg_mod)
+summary(reg_mod)
+```
+
+## Quadratic Linear Regression Model Model
+```{r}
+plot(df$hp, df$disp, main = "Scatterplot with abline", xlab= "Horse Power", ylab= "Displacement")
+df$hp2<-df$hp^2
+reg_mod<-lm(df$disp~ df$hp+df$hp2)
+abline(reg_mod)
+summary(reg_mod)
+```
+
