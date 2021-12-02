@@ -1,0 +1,148 @@
+---
+title: "Project 3"
+author: "Dipesh Poudel"
+date: "12/2/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Project 3 - Data Visualization in R
+
+## Part 1: Data visualization with Base R graphics packages 
+
+Use the built-in CO2 data and do as follows: 
+
+
+```{r}
+# Loading the CO2 data
+co2_data<-CO2
+str(co2_data)
+```
+1. Create bar graph of plant, type and treatment variables
+```{r}
+variables<-c('Plant','Type','Treatment')
+for (var in variables){
+barplot(table(co2_data[var]),main = paste("Bar Graph of ",var),
+        xlab = var, ylab = "Frequency")  
+}
+
+```
+2. Create histogram of conc and uptake variables 
+  Histogram of conc variable
+```{r}
+# Histogram of conc variable
+hist(co2_data$conc,main = "Histogram of conc",xlab = "conc",ylab = "Frequency")
+```
+  Histogram of uptake variable
+```{r}
+# Histogram of uptake variable
+hist(co2_data$uptake,main = "Histogram of uptake",xlab = "conc",ylab = "Frequency")
+```
+
+3. Create scatterplot of conc and uptake variables 
+
+```{r}
+plot(co2_data$conc,co2_data$uptake,main = "Scatter Plot of conc and uptake",
+     xlab = "conc",ylab = "uptake")
+```
+4. Which measure of association is suitable for conc and uptake variables 
+  Since the relationship is not linear we have to use spearman correlation for 
+  association
+5. Compute the best correlation coefficient for conc and uptake variables and interpret the result carefully.
+
+```{r}
+cor(co2_data$conc,co2_data$uptake,method  = c("spearman"))
+```
+Since the correlation coefficient is positive and greater than 0 we can say that the as the conc increases the uptake tends to increase but not in linear way.
+
+
+## Part 2: Data visualization with ggplot2 package 
+Use the built-in CO2 data and do as follows: 
+```{r}
+library(ggplot2)
+```
+
+1. Create bar graph of plant, type and treatment variables 
+
+```{r}
+variables<-c('Plant','Type','Treatment')
+ggplot(data = co2_data) + geom_bar(mapping = aes(x = Plant))+ggtitle("Bar Graph of Plant")
+ggplot(data = co2_data) + geom_bar(mapping = aes(x = Type))+ggtitle("Bar Graph of Type")
+ggplot(data = co2_data) + geom_bar(mapping = aes(x = Treatment))+ggtitle("Bar Graph of Treatment")
+```
+2. Create histogram of conc and uptake variables 
+```{r}
+ggplot(data = co2_data)+geom_histogram(mapping = aes(x=conc))+ggtitle("Histogram of conc")
+ggplot(data = co2_data)+geom_histogram(mapping = aes(x=uptake))+ggtitle("Histogram of uptake")
+```
+
+3. Create scatterplot of conc and uptake variables 
+```{r}
+ggplot(data=co2_data)+geom_point(mapping = aes(x=conc,y=uptake))+ggtitle('Scatter Plot of conc and uptake')
+```
+
+## Part 4: Text analysis with base/ggplot and Social Network Analysis with igraph package 
+Use/load the attached “termDocMatrix.rdata” file in R studio and do as follows:
+```{r}
+file_path = 'data/termDocMatrix.rdata'
+term_matrix_data<-load(file = file_path)
+```
+
+1. Covert this data as matrix 
+
+```{r}
+library(tm)
+term_matrix_data<-as.DocumentTermMatrix(termDocMatrix,weighting=weightBin)
+term_matrix_data<-as.matrix(term_matrix_data)
+```
+
+2. Get the term frequencies 
+```{r}
+freq <- sort(rowSums(term_matrix_data), decreasing=T)
+freq
+```
+
+3. Create the histogram of the term frequencies 
+
+```{r}
+barplot(freq,main = "Frequency of Each Term",xlab = "Term",ylab = "Frequency")
+
+hist(freq,main = "Histogram of Frequency",xlab = "Term Frequency")
+```
+4. Create the histogram of the terms with frequencies of 5 and more 
+```{r}
+freq_1<-subset(freq,freq>=5)
+barplot(freq_1,main = "Frequency of Each Term with Freq>=5",xlab = "Term",ylab = "Frequency")
+
+hist(freq-1,main = "Histogram of Frequency",xlab = "Term Frequency")
+```
+5. Create word cloud of the term frequencies 
+
+```{r}
+library(wordcloud)
+freq <- sort(rowSums(term_matrix_data), decreasing=T)
+wordcloud(words=names(freq), freq=freq, min.freq=5,
+random.order=F)
+```
+6. Perform social network analysis of the termDocumentMatrix data and interpret it carefully  
+
+
+```{r}
+library(igraph)
+#Transform Data into an Adjacency Matrix
+termDocMatrix[termDocMatrix>=1] <- 1
+# Transformation into term-term adjacency matrix
+termMatrix <- termDocMatrix %*% t(termDocMatrix)
+# Checking few terms in the adjacency matrix
+termMatrix[1:5,1:5]
+# Creating a undirected graph
+g <- graph.adjacency(termMatrix, weighted=T, mode = "undirected")
+# Removing the loop in same term 
+g<-simplify(g)
+plot(g)
+```
+
+In the graph above, we can see that the terms like 'r', 'mining', 'data' are at center and are frequently with other words. We can also see that 'time','series','introduction' have a cluster. We can also see the cluster of words 'research', 'postdoctoral','positions' from cluster. It makes sense for these words to come together.

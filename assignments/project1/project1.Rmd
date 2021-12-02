@@ -29,7 +29,11 @@ covidtbl<-fromJSON(url,flatten=TRUE)
 covidtbl<-subset(covidtbl,select = -c(relatedTo,point.type,point.coordinates))
 print(summary(covidtbl))
 ```
-We removed unused columns relatedTo,point.type,point.coordinates which can make analysis little bit difficult.
+The three conditions for tidy data are:
+1. One row should contain one observation
+2. One column should have only one variable
+3. Each cell should contain atomic value
+We removed columns relatedTo,point.type,point.coordinates as they do not satisfy the above three condition.
 
 From Summary we see that we the date data is in string we need to change it to date.
 
@@ -196,7 +200,7 @@ boxplot(covidtbl$age,main="Boxplot of Age")
 boxplot(covidtbl$diff1, main="Boxplot of diff1")
 boxplot(covidtbl$diff2, main="Boxplot of diff2")
 ```
-Analyzing the graphs, we can see that the data is skewed for age, diff1 and diff2 so we have to use median for central tendency and Inter Quartile Range for IQR.
+Analyzing the graphs, we can see that the data is skewed for age, diff1 and diff2 so we have to use median for central tendency and Inter Quartile Range for dispersion.
 
 ## Analysis of current state variable
 11. Show the number and percentage of the "current state" variable and interpret it carefully
