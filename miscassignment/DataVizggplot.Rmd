@@ -1,0 +1,30 @@
+---
+title: "Data Visulization GGPLOT"
+author: "Dipesh Poudel"
+date: "11/21/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+# Checking all the available dataset in R
+data()
+
+```
+
+Th
+```{r}
+library(ggplot2)
+ggplot(data = BOD,mapping = aes(x=Time,y=demand))
+```
+
+
