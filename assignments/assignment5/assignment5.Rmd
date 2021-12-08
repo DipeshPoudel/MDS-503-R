@@ -1,0 +1,62 @@
+---
+title: "Assignment 5"
+author: "Dipesh Poudel"
+date: "12/8/2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 5
+
+```{r cars}
+#Define mean and SD
+pop_mean<-50
+pop_sd<-5
+#Define lower and upper limits
+LL <-pop_mean-pop_sd
+UL <-pop_mean+ pop_sd
+#Create a sequence of 100 x values based on pop mean and sd
+x <-seq(-4,4, length=100)*pop_sd+pop_mean
+y <-dnorm(x, pop_mean, pop_sd)
+plot(x,y, type="l", lwd=2, axes=F, xlab="", ylab="")
+sd_axis_bounds= 5
+axis_bounds<-seq(-sd_axis_bounds*pop_sd + pop_mean, sd_axis_bounds*pop_sd+ pop_mean, by=pop_sd)
+axis(side=1, at=axis_bounds, pos=0)
+abline(v=50)
+abline(v=50+pop_sd)
+abline(v=50-pop_sd)
+abline(v=50+2*pop_sd)
+abline(v=50-2*pop_sd)
+abline(v=50+3*pop_sd)
+abline(v=50-3*pop_sd)
+```
+```{r}
+library(ggplot2)
+ggplot(data=as.data.frame(x,y),aes(x=x,y=y))+geom_line()+scale_x_continuous(breaks = axis_bounds)+geom_vline(xintercept = seq(30,70,by=pop_sd))+annotate(geom = "text",x = 50,y=mean(y)+0.01, label = "67% data")+annotate(geom = "segment",x = 45,y=mean(y)+0.012,xend = 55,yend = mean(y)+0.012)+annotate(geom = "text",x = 50,y=mean(y)+0.02, label = "95% data")+annotate(geom = "segment",x = 40,y=mean(y)+0.025,xend = 60,yend = mean(y)+0.025)+annotate(geom = "text",x = 50,y=mean(y)+0.03, label = "99% data")+annotate(geom = "segment",x = 35,y=mean(y)+0.035,xend = 65,yend = mean(y)+0.035)
+```
+
+```{r}
+cars_data<-mtcars
+ggplot(data=cars_data,aes(x=mpg))+geom_histogram(binwidth = 5)
+```
+
+```{r}
+ggplot(data = cars_data,aes(mpg))+geom_histogram(binwidth = 5)+coord_flip()
+```
+
+```{r}
+cars_data<-mtcars
+qqnorm(cars_data$mpg, pch = 1, frame = FALSE)
+qqline(cars_data$mpg, col = "steelblue", lwd = 2)
+```
+```{r}
+shapiro.test(cars_data$mpg)
+```
+Null Hypothesis(H0): The data follows normal distribution
+Alternative Hypothesis(H1): The data does not follow normal distribution
+Since the p-value obtained from the test is not less than 0.05 we can say that the data comes from normal distribution i.e Null Hypothesis is accepted. 
+
+Since the number of samples (32)<50 we can not use Kolmogorov-Smirnov. Thus we have to use 	Shapiro-Wilk normality test.
