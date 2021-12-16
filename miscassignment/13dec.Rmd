@@ -1,0 +1,167 @@
+---
+title: "13Dec"
+author: "Dipesh Poudel"
+date: "12/13/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1 way ANOVA
+```{r}
+str(mtcars)
+```
+
+```{r}
+mtcars$gear<-as.factor(mtcars$gear)
+```
+
+```{r}
+str(mtcars$gear)
+```
+
+```{r}
+with(mtcars,shapiro.test(mpg[gear==3]))
+```
+```{r}
+with(mtcars,shapiro.test(mpg[gear==4]))
+```
+```{r}
+with(mtcars,shapiro.test(mpg[gear==5]))
+```
+```{r}
+library(car)
+leveneTest(mpg~gear,data = mtcars)
+```
+
+```{r}
+summary(aov(mpg~gear,data = mtcars))
+```
+
+```{r}
+aov(mpg~gear,data = mtcars)
+```
+
+```{r}
+TukeyHSD(aov(mpg~gear,data = mtcars))
+```
+First category is taken as reference.
+```{r}
+summary(lm(mpg~gear,data = mtcars))
+```
+In ANOVA we must adjust p-value in linear regression we do not perform adjustment
+
+```{r}
+pairwise.t.test(mtcars$mpg,mtcars$gear,p.adj="none")
+```
+
+
+Covariance
+
+```{r}
+cov(mtcars$wt,mtcars$mpg)
+```
+
+```{r}
+cov(mtcars$wt,mtcars$mpg)
+```
+
+```{r}
+mtcars$wt2<-mtcars$wt/2.2
+```
+
+```{r}
+cov(mtcars$wt2,mtcars$mpg)
+```
+
+Correlation
+```{r}
+cor(mtcars$wt,mtcars$mpg)
+```
+
+```{r}
+cor(mtcars$wt2,mtcars$mpg)
+```
+
+* LOW Degree:<0.25
+* Medium Degree: 0.25-0.75
+* High Degree: >0.75
+
+Test the Correlation 
+```{r}
+cor.test(mtcars$wt,mtcars$mpg)
+```
+
+```{r}
+cor.test(mtcars$wt2,mtcars$mpg)
+```
+
+Correlation + Test = Inference
+Correlation = Descriptive
+
+```{r}
+lm1<-lm(mpg~wt,data = mtcars)
+lm1
+```
+```{r}
+summary(lm1)
+```
+LINE Test of Residuals
+• L = Linearity of residuals
+• I = Independence of residuals
+• N = Normality of residuals
+• E = Equal variance of residuals
+```{r}
+names(lm1)
+```
+
+```{r}
+lm1.resid <- lm1$residuals
+lm1.fitted <- fitted(lm1)
+```
+
+Linearity of residuals
+```{r}
+plot(lm1, which=1, col=c("blue"))
+```
+```{r}
+summary(lm1$residuals)
+```
+Autocorrelation Function Plot (ACF) of the residuals
+```{r}
+acf(lm1$residuals)
+```
+
+```{r}
+library(car)
+durbinWatsonTest(lm1)
+```
+
+Normality of residuals
+```{r}
+plot(lm1, which=2, col=c("blue"))
+```
+```{r}
+shapiro.test(lm1$residuals)
+```
+
+```{r}
+plot(lm1, which=3, col=c("blue"))
+```
+
+```{r}
+library(lmtest)
+bptest(lm1)
+```
+Making the Prediction
+```{r}
+p <- data.frame(x=c(6))
+colnames(p) <- "wt"
+```
+
+```{r}
+predict(lm1, p)
+```
+

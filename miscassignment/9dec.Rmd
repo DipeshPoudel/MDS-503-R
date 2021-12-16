@@ -1,0 +1,70 @@
+---
+title: "9dec"
+author: "Dipesh Poudel"
+date: "12/9/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Hypothesis Testing
+
+
+```{r}
+df<-mtcars
+str(df)
+```
+```{r}
+mean(df$mpg)
+```
+
+```{r}
+# Getting the sample size
+n<-length(df$mpg)
+xbar<-mean(df$mpg)
+mu<-20
+sigma<-6
+```
+
+```{r}
+z<-sqrt(n)*(xbar-mu)/sigma
+z
+```
+
+```{r}
+p_value<-2*pnorm(-abs(z))
+p_value
+```
+```{r}
+mean(df$mpg)
+```
+```{r}
+t.test(df$mpg,mu=20)
+```
+```{r}
+t.test(df$mpg,mu=10)
+```
+
+```{r}
+with(df,shapiro.test(mpg[am==0]))
+```
+
+```{r}
+with(df,shapiro.test(mpg[am==1]))
+```
+```{r}
+var.test(mpg~am,data = df)
+```
+```{r}
+t.test(mpg~am,var.equal=T,data=df)
+```
+
+```{r}
+df<-mtcars
+summary(lm(mtcars$mpg~mtcars$mpg))
+```
+
+
+
