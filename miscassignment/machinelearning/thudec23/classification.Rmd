@@ -1,0 +1,89 @@
+---
+title: "Classification"
+author: "Dipesh Poudel"
+date: "12/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+library(readr)
+df<-read.csv('titanic.csv')
+View(df)
+```
+
+```{r}
+str(df)
+```
+```{r}
+data<-df[,-3]
+```
+
+```{r}
+str(data)
+```
+
+```{r}
+table(data$Pclass)
+```
+```{r message=FALSE}
+library(dplyr)
+data<-data%>%mutate_at(vars(Pclass,Sex),as.factor)
+```
+
+```{r}
+str(data)
+```
+```{r}
+model.full<-glm(Survived~.,data = data,family = binomial)
+```
+
+```{r}
+summary(model.full)
+```
+```{r}
+# Model Fit McFadden's Pseudo R-square
+(mfpr2<-1-(model.full$deviance/model.full$null.deviance))
+```
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+ggplot(data,aes(x=Age,y=Survived))+geom_point()+stat_smooth(method = "glm",family="binomial",se=FALSE)
+```
+```{r}
+predict<-predict(model.full,type = "response")
+```
+
+```{r}
+predicted.fm<-as.numeric(ifelse(predict>0.5,1,0))
+```
+
+```{r}
+# Confusion Matrix
+(cm<-table(predicted.fm,data$Survived))
+```
+
+```{r}
+(accuracy<-sum(diag(cm))/sum(cm))
+(error<-1-accuracy)
+```
+```{r}
+(sensitivity<-cm[1,1]/(cm[1,1]+cm[2,1]))
+(FNR<-1-sensitivity)
+```
+```{r}
+(specificity<-cm[2,2]/(cm[2,1]+cm[2,2]))
+(FPR<-1-specificity)
+```
+
+```{r}
+library(caret)
+predicted<-factor(ifelse(predict>0.5,1,0))
+refrence<-factor(data$Survived)
+confusionMatrix(predicted,refrence)
+```
+

@@ -1,0 +1,91 @@
+---
+title: "Dec16"
+author: "Dipesh Poudel"
+date: "12/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+lm1<-lm(mpg~wt,data = mtcars)
+lm1
+```
+Calculating Mean Sum of Error (MSE)
+
+```{r}
+(mse<-mean(lm1$residuals^2))
+```
+
+```{r}
+data<-data.frame(
+  pred=predict(lm1),actual=mtcars$mpg
+)
+head(data)
+```
+```{r}
+library(caret)
+R2<-R2(data$pred,data$actual)
+R2
+```
+
+```{r}
+RMSE<-RMSE<-RMSE(data$pred,data$actual)
+RMSE
+```
+
+```{r}
+MAE<-MAE(data$pred,data$actual)
+MAE
+```
+
+
+
+```{r}
+MAPE<-mean(abs((data$actual-data$pred)/data$actual))*100
+MAPE
+```
+```{r}
+new.wt<-data.frame(wt=6)
+predict(lm1,newdata = new.wt)
+```
+
+```{r}
+data<-mtcars
+
+set.seed(1234)
+ind<-sample(2,nrow(mtcars),replace = T,prob = c(0.7,0.3))
+
+train.data<-data[ind==1,]
+test.data<-data[ind==2,]
+```
+
+```{r}
+lm2<-lm(mpg~wt,data = train.data)
+library(dplyr)
+library(caret)
+predictions<-lm2%>%predict(test.data)
+
+data.frame(R2=R2(predictions,test.data$mpg),
+           RMSE=RMSE(predictions,test.data$mpg),
+           MAE=MAE(predictions,test.data$mpg)
+           )
+```
+
+```{r}
+summary(lm2)
+```
+
+```{r}
+library(caret)
+train.control<-trainControl(method = "")
+```
+

@@ -1,0 +1,61 @@
+---
+title: "LinearRegression"
+author: "Dipesh Poudel"
+date: "12/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(mlbench)
+library(caret)
+```
+```{r}
+data("BostonHousing")
+```
+
+## Check to see if there are missing data?
+
+```{r}
+sum(is.na(BostonHousing))
+```
+
+## To achieve reproducible model; set the random seed number
+
+```{r}
+set.seed(100)
+```
+
+Stratified Random Split
+```{r}
+TrainingIndex<-createDataPartition(BostonHousing$medv,p=0.8,list = FALSE)
+Trainingset<-BostonHousing[TrainingIndex,]
+Testingset<-BostonHousing[-TrainingIndex,]
+```
+
+## Build Model
+```{r}
+Model <- train(medv ~ ., data = Trainingset,
+               method = "lm",
+               na.action = na.omit,
+               preProcess=c("scale","center"),
+               trControl= trainControl(method="none")
+)
+
+```
+
+```{r}
+# Apply model for prediction
+model.training <-predict(Model, Trainingset) # Apply model to make prediction on Training set
+model.testing <-predict(Model, Testingset) # Apply model to make prediction on Testing set
+
+# Model performance (Displays scatter plot and performance metrics)
+  # Scatter plot of Training set
+    plot(Trainingset$medv,model.training, col = "blue" )
+    plot(Testingset$medv,model.testing, col = "blue" )
+
+```
+

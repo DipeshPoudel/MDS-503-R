@@ -1,0 +1,122 @@
+---
+title: "mondec20"
+author: "Dipesh Poudel"
+date: "12/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+covid_data<-read_excel("covid_tbl_final.xlsx")
+str(covid_data)
+```
+
+```{r}
+str(covid_data$Date)
+```
+```{r}
+covid_data$Date<-as.Date(covid_data$Date)
+```
+
+```{r}
+plot(covid_data$Date,covid_data$Deaths_total)
+```
+
+```{r}
+plot(covid_data$Date,covid_data$Deaths_daily)
+```
+
+```{r}
+plot(covid_data$SN,covid_data$Deaths_daily)
+```
+
+```{r}
+covid_data<-as.data.frame(covid_data)
+```
+
+```{r}
+plot.data<-covid_data[covid_data$SN<=398,]
+```
+
+```{r}
+plot(plot.data$Date,plot.data$Deaths_total)
+```
+
+```{r}
+lm<-lm(Deaths_total~SN,data=plot.data)
+```
+
+```{r}
+summary(lm)
+```
+
+```{r}
+plot(plot.data$SN,plot.data$Deaths_total)
+abline(lm)
+```
+
+```{r}
+qlm<-lm(Deaths_total~poly(SN,2,raw=T),data=plot.data)
+```
+
+```{r}
+summary(qlm)
+```
+
+```{r}
+str(plot.data)
+```
+
+```{r}
+plot(plot.data$SN,plot.data$Deaths_total)
+line(fitted(qlm)~SN,data=plot.data)
+```
+
+```{r}
+clm<-lm(Deaths_total~poly(SN,3,raw = T),data=plot.data)
+```
+
+```{r}
+summary(clm)
+```
+
+```{r}
+library(caret)
+```
+
+```{r}
+set.seed(1234)
+ind<-sample(2,nrow(plot.data),replace = T,prob = c(0.7,0.3))
+```
+
+```{r}
+train.data<-plot.data[ind==1,]
+test.data<-plot.data[ind==2,]
+```
+
+```{r}
+knreg<-knnreg(Deaths_total~SN,data=plot.data)
+```
+
+```{r}
+summary(knreg)
+```
+
+```{r}
+str(knreg)
+```
+```{r}
+predicted<-predict(knreg,newdata = test.data)
+```
+
+```{r}
+data.frame(R2=R2(predicted,test.data$Deaths_total),
+           RMSE=RMSE(predicted,test.data$Deaths_total),
+           MAE=MAE(predicted,test.data$Deaths_total)
+           )
+```
+

@@ -1,0 +1,166 @@
+---
+title: "A6 Supervised Learning with Multiple Linear Regression"
+author: "Dipesh Poudel"
+date: "12/22/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Fit multiple linear regression on "mtcars" data using mpg variable as dependent variable and rest of the variables as independent variables and interpret the result carefully in terms of model fit and the multicollinearity
+
+```{r}
+lm1<-lm(mpg~.,data = mtcars)
+summary(lm1)
+```
+
+Since p-value is 3.793e-07 we can say that the model is significant. The predictor variable wt is significant and others variables are not.
+
+Now we will use `vif()` function from `car` package to calculate variance influence factor(VIF) to check for Multicollinearity.
+
+```{r}
+library(car)
+vif(lm1)
+```
+When there is occurrence of high inter correlations among two or more independent variables then it is called multicollinearity. We calculate VIF and from variables having VIF>10 we remove the variable with highest VIF value while fitting the model. In our case disp has highest VIF with value 21.06. We need to remove this variable.
+
+## 2. Split the “mtcars” data into two random datasets (training and testing sets) with 70:30 partition 
+
+### Splitting Data into train and test 
+```{r}
+set.seed(1234)
+ind<-sample(2,nrow(mtcars),replace = T,prob = c(0.7,0.3))
+train_data<-mtcars[ind==1,]
+test_data<-mtcars[ind==2,]
+```
+
+## 3. Fit the multiple linear regression in the training set and validate its results with testing set 
+
+### Training the Model with train data
+```{r message=FALSE}
+library(caret)
+lm2<-train(mpg~.,data = train_data,method="lm")
+```
+
+```{r}
+lm2
+```
+### Making Predictions on test data
+```{r}
+predict1<-predict(lm2,newdata = test_data)
+```
+
+### Calculation of Evaluation Metrices
+```{r}
+R2<-R2(predict1,test_data$mpg)
+RMSE <- RMSE(predict1,test_data$mpg)
+MAE <- MAE(predict1,test_data$mpg)
+R2
+RMSE
+MAE
+```
+The value of R-squre has increased for test data and error has decreased compared to the training.
+
+## 4. Fit the multiple linear regression in the training set with LOOCV control and validate its results with testing set
+
+```{r}
+set.seed(1234)
+train_control_1<-trainControl(method = "LOOCV")
+lm3<-train(mpg~.,data = train_data,method="lm",trControl=train_control_1)
+```
+
+```{r}
+lm3
+```
+```{r}
+predict2<-predict(lm3,newdata = test_data)
+R2<-R2(predict2,test_data$mpg)
+RMSE <- RMSE(predict2,test_data$mpg)
+MAE <- MAE(predict2,test_data$mpg)
+R2
+RMSE
+MAE
+```
+## 5. Fit the multiple linear regression in the training set with 10-folds cross-validation control and validate its results with testing set 
+
+```{r}
+set.seed(1234)
+train_control_2<-trainControl(method = "cv",number = 10)
+lm4<-train(mpg~.,data=train_data,method="lm",trControl=train_control_2)
+```
+```{r}
+lm4
+```
+
+```{r}
+predict3<-predict(lm4,newdata = test_data)
+R2<-R2(predict3,test_data$mpg)
+RMSE <- RMSE(predict3,test_data$mpg)
+MAE <- MAE(predict3,test_data$mpg)
+R2
+RMSE
+MAE
+```
+
+## 6. Fit the multiple linear regression in the training set with 10-folds and 3 repeats control and validate its results with testing set 
+
+```{r}
+set.seed(1234)
+train_control_3<-trainControl(method = "repeatedcv", number = 3, repeats = 3)
+lm5<-train(mpg~.,data = train_data,method="lm",trControl=train_control_3)
+lm5
+```
+
+```{r}
+predict4<-predict(lm5,newdata = test_data)
+R2<-R2(predict4,test_data$mpg)
+RMSE <- RMSE(predict4,test_data$mpg)
+MAE <- MAE(predict4,test_data$mpg)
+R2
+RMSE
+MAE
+```
+
+## 7. Which model is the best model? Why? Describe carefully. 
+
+The best model was one with 10 fold cross validation as it has highest R-squred valued and lowest RMSE value. These values in the test data remained same.
+
+## 8. Predict the weight using the best model identified above. 
+
+### Creating a dataframe with new value
+```{r}
+new_data_p<-data.frame(cyl=4,disp=110,hp=95,drat=3.25,wt=2.50,qsec=19.50,vs=1,am=1,gear=4,carb=1)
+predict(lm4,newdata = new_data_p)
+```
+The predicted MPG for given new data is 24.84.
+
+## 9. Change all the independent variables as standardized variable using “scale” command in R/R Studio 
+
+```{r}
+df<-as.data.frame(mtcars)
+```
+
+```{r message=FALSE}
+library(dplyr)
+col_names<-c(names(df))
+col_names<-col_names[!col_names %in% c('mpg')]
+df<-df%>%mutate_at(vars(col_names),scale)
+```
+
+## 10. Fit the multiple linear regression on “mtcars” data using mpg as dependent variable and all the standardized variable as the independent variable and interpret the results carefully in terms of model fit and the multicollinearity 
+```{r}
+lm6<-lm(mpg~.,data = df)
+```
+
+```{r}
+summary(lm6)
+```
+```{r}
+library(car)
+vif(lm6)
+```
+The value of R-squared is 0.869. There are two variables with VIF>10. The disp have VIF value 21.62 so this variable should be removed.
