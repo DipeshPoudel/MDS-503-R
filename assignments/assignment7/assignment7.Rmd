@@ -1,0 +1,178 @@
+---
+title: "Assignment 7"
+author: "Dipesh Poudel"
+date: "12/28/2021"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Instructions:**
+
+Use the attached Nepal COVID-19 data extracted from Wikipedia to fit the following models with daily deaths as dependent variable and time as independent variable.
+
+First plot the daily deaths by time and distribute the three outliers (added deaths around timeline of 400) before fitting the following models in the outlier adjusted data on training and testing datasets:
+
+### Loading the excel data
+```{r}
+library(readxl)
+covid_tbl<-read_excel('covid_tbl_final.xlsx')
+```
+
+```{r}
+str(covid_tbl)
+```
+```{r}
+covid_tbl$Date<-as.Date(as.POSIXct(covid_tbl$Date))
+```
+
+```{r}
+str(covid_tbl)
+```
+```{r}
+plot(covid_tbl$Date,covid_tbl$Deaths_total,xlab = "Date",ylab = "Total Deaths")
+```
+```{r}
+plot(covid_tbl$Date,
+covid_tbl$Deaths_daily,
+main = "Daily Deaths: 23 Jan 2020
+- 31 May 2021",
+xlab = "Date",
+ylab = "Daily Deaths")
+```
+```{r}
+summary(covid_tbl$Deaths_daily)
+```
+```{r message=FALSE}
+library(dplyr)
+filter(covid_tbl,Deaths_daily>=50&Date<=as.Date("2021-03-05"))
+```
+
+```{r}
+wsn<-c(399,401,408)
+for(i in 1:length(wsn)){
+
+temp_sn = wsn[i]  
+# Get the Value to be adjusted
+curr_val<-covid_tbl[covid_tbl$SN==temp_sn,"Deaths_daily"]
+# Calculate the average daily deaths for last 30 days
+avg_daily_deaths<-ceiling(mean(covid_tbl[covid_tbl$SN %in% c((temp_sn-1):(temp_sn-1-30)),]$Deaths_daily))
+
+# Change the Value for given SN
+covid_tbl[covid_tbl$SN==temp_sn,"Deaths_daily"]=avg_daily_deaths
+# Change values for last 30 days
+covid_tbl[covid_tbl$SN %in% c((temp_sn-1):(temp_sn-1-30)),]$Deaths_daily=as.integer( round(curr_val/30))
+}
+```
+
+```{r}
+plot(covid_tbl$Date,
+covid_tbl$Deaths_daily,
+main = "Daily Deaths: 23 Jan 2020
+- 31 May 2021",
+xlab = "Date",
+ylab = "Daily Deaths")
+```
+
+### Splitting the data into training and testing set
+```{r}
+set.seed(1234)
+ind<-sample(2,nrow(covid_tbl),replace=T,prob = c(0.7,0.3))
+train_data<-covid_tbl[ind==1,]
+test_data<-covid_tbl[ind==2,]
+```
+
+## 1.  Linear regression model
+
+```{r message=FALSE}
+library(caret)
+```
+
+```{r}
+lm1<-train(Deaths_daily~SN,data=train_data,method="lm")
+predict1<-predict(lm1,newdata = test_data)
+```
+
+
+```{r}
+predict_eval<-function(predicted_values){
+  return(data.frame(
+    R2=R2(predicted_values,test_data$Deaths_daily),
+RMSE = RMSE(predicted_values,test_data$Deaths_daily),
+MAE = MAE(predicted_values,test_data$Deaths_daily)
+  ))
+}
+```
+
+```{r}
+predict_eval(predict1)
+```
+
+
+## 2.  Quadratic linear regression model
+```{r}
+lm2<-train(Deaths_daily~poly(SN,2),data=train_data,method="lm")
+predict2<-predict(lm2,newdata = test_data)
+predict_eval(predict2)
+```
+
+## 3.  Cubic linear regression model
+
+```{r}
+lm3<-train(Deaths_daily~poly(SN,3),data = train_data,method="lm")
+predict3<-predict(lm3,newdata = test_data)
+predict_eval(predict3)
+```
+
+## 4.  Double quadratic linear regression model
+
+```{r}
+lm4<-train(Deaths_daily~poly(SN,4),data = train_data,method="lm")
+predict4<-predict(lm4,newdata = test_data)
+predict_eval(predict4)
+```
+
+## 5.  Fifth order polynomial regression model
+```{r}
+lm5<-train(Deaths_daily~poly(SN,5),data = train_data,method="lm")
+predict5<-predict(lm5,newdata = test_data)
+predict_eval(predict5)
+```
+
+## 6.  KNN regression model
+```{r}
+knnmodel<-train(Deaths_daily~SN,data = train_data,method="knn")
+predict6<-predict(knnmodel,newdata = test_data)
+predict_eval(predict6)
+
+```
+
+## 7.  ANN-MLP regression model with 2 hidden layers with 3 and neurons
+
+```{r message=FALSE}
+library(neuralnet)
+nn<-neuralnet(Deaths_daily~SN,data = train_data,hidden = c(3,2),linear.output = F)
+predict7<-predict(nn,newdata = test_data)
+predict_eval(predict7)
+```
+
+## 8.  Select the best model with lowest RMSE on the test data
+
+Based on the RMSE value on the test data the best model is 
+KNN model which gave us the RMSE value of 5.806763 on the test data.
+
+## 9.  Write a summary and recommendation for Ministry of Health, Nepal
+
+```{r}
+#Plot with linear model
+plot(covid_tbl$SN, covid_tbl$Deaths_daily,
+main = "Daily Covid Deaths",
+xlab = "SN",
+ylab = "Daily Deaths")
+lines(predict(knnmodel,newdata = covid_tbl), col = "red", lwd=2)
+```
+The model shows that the number of deaths will increase, reach a peak and go down. So, I would recommend that the vaccine to be provided to as many people as possible as fast as possible and ease the lock down with great care.
