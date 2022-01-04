@@ -97,6 +97,9 @@ lm1<-train(Deaths_daily~SN,data=train_data,method="lm")
 predict1<-predict(lm1,newdata = test_data)
 ```
 
+```{r}
+summary(lm1)
+```
 
 ```{r}
 predict_eval<-function(predicted_values){
@@ -111,59 +114,71 @@ MAE = MAE(predicted_values,test_data$Deaths_daily)
 ```{r}
 predict_eval(predict1)
 ```
-
+In this model, the value of R-square decreased in the test data i. e in the training data it was 0.20 and in test data it is 0.188
 
 ## 2.  Quadratic linear regression model
 ```{r}
 lm2<-train(Deaths_daily~poly(SN,2),data=train_data,method="lm")
+summary(lm2)
 predict2<-predict(lm2,newdata = test_data)
 predict_eval(predict2)
 ```
-
+In the quadratic linear regression model the value of R-squared has increased compared to the simple linear regression model. In this case the R-2 value has decreased in the test data.
 ## 3.  Cubic linear regression model
 
 ```{r}
 lm3<-train(Deaths_daily~poly(SN,3),data = train_data,method="lm")
+summary(lm3)
 predict3<-predict(lm3,newdata = test_data)
 predict_eval(predict3)
 ```
+
+In this model the R-squared in the both train and test data has increased compared to previous two models. Also, the R2 value for test has also increased compared to the train.
 
 ## 4.  Double quadratic linear regression model
 
 ```{r}
 lm4<-train(Deaths_daily~poly(SN,4),data = train_data,method="lm")
+summary(lm4)
 predict4<-predict(lm4,newdata = test_data)
 predict_eval(predict4)
 ```
 
+In this model the R-squared in the both train and test data has increased compared to previous two models. Also, the R2 value for test has also increased compared to the train.
+
 ## 5.  Fifth order polynomial regression model
 ```{r}
 lm5<-train(Deaths_daily~poly(SN,5),data = train_data,method="lm")
+summary(lm5)
 predict5<-predict(lm5,newdata = test_data)
 predict_eval(predict5)
 ```
-
+This model has the high value of R2 0.72 in the training and 0.80 in the test. Since the value of R2 has increased in the test we can say that our model is a good model.  
 ## 6.  KNN regression model
 ```{r}
+library(caret)
 knnmodel<-train(Deaths_daily~SN,data = train_data,method="knn")
+summary(knnmodel)
 predict6<-predict(knnmodel,newdata = test_data)
 predict_eval(predict6)
 
 ```
-
+Since KNN is a lazy algorithm there are no interpret able summary in the KNN model. In test data we got the R2 of 0.97 which is highest till now. 
 ## 7.  ANN-MLP regression model with 2 hidden layers with 3 and neurons
 
 ```{r message=FALSE}
 library(neuralnet)
 nn<-neuralnet(Deaths_daily~SN,data = train_data,hidden = c(3,2),linear.output = F)
+plot(nn,main="The Architecture of the Neural Network")
+summary(nn)
 predict7<-predict(nn,newdata = test_data)
 predict_eval(predict7)
 ```
+The neural network has the lowest value of R2.
 
 ## 8.  Select the best model with lowest RMSE on the test data
 
-Based on the RMSE value on the test data the best model is 
-KNN model which gave us the RMSE value of 5.806763 on the test data.
+The best model is the one with highest value of R2 and smallest value of RMSE(Error). In our case KNN model gave the highest value of R2. Therefore we can say that KNN is the best model in this case.
 
 ## 9.  Write a summary and recommendation for Ministry of Health, Nepal
 
