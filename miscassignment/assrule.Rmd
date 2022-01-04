@@ -1,0 +1,113 @@
+---
+title: "AssocitationRule"
+author: "Dipesh Poudel"
+date: "1/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Creating the Data
+```{r}
+market_basket<-list(c("bread","milk"),c("bread","diapers","beer","eggs"),
+                    c("milk","diapers","beer","cola"),
+                    c("bread","milk","diapers","beer"),
+                    c("bread","milk","diapers","cola")
+                    )
+```
+
+```{r}
+names(market_basket)<-paste("T",c(1:5),sep = "")
+```
+
+```{r}
+library(arules)
+```
+```{r}
+trans<-as(market_basket,"transactions")
+```
+
+```{r}
+attributes(trans)
+```
+```{r}
+dim(trans)
+```
+
+```{r}
+itemLabels(trans)
+```
+```{r}
+summary(trans)
+```
+
+```{r}
+image(trans)
+```
+
+```{r}
+inspect(trans)
+```
+
+```{r}
+itemFrequencyPlot(trans,topN=10,cex.names=1)
+```
+
+```{r}
+rules<-apriori(trans)
+```
+```{r}
+attributes(rules)
+```
+
+```{r}
+inspect(rules)
+```
+```{r}
+rules<-apriori(trans,parameter = list(supp=0.3,conf=0.5,maxlen=10,target="rules"))
+```
+
+```{r}
+inspect(rules)
+```
+
+```{r}
+summary(rules)
+```
+
+```{r}
+inspect(rules)
+```
+```{r}
+rules<-apriori(trans,parameter = list(supp=0.3,conf=0.5,maxlen=10,target="rules",minlen=2))
+```
+
+```{r}
+inspect(rules)
+```
+
+```{r}
+library(arulesViz)
+plot(rules)
+```
+
+```{r}
+plot(rules,method = "two-key plot")
+```
+
+```{r}
+plot(rules,engine = "plotly")
+```
+
+```{r}
+subrules<-head(rules,n=10,by="confidence")
+plot(subrules,method="graph",engine="htmlwidget")
+```
+
+```{r}
+plot(subrules,method = "paracoord")
+```
+
+Every variable should be factor.

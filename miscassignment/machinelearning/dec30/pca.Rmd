@@ -1,0 +1,61 @@
+---
+title: "PCA"
+author: "Dipesh Poudel"
+date: "12/30/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+head(USArrests)
+```
+
+```{r}
+library(dplyr)
+```
+```{r}
+USArrests.1<-USArrests[,-3]%>%scale
+```
+
+Fitting the PCA in the new data
+
+```{r}
+pca.1<-prcomp(USArrests.1)
+```
+
+```{r}
+summary(pca.1)
+```
+```{r}
+library(psych)
+```
+
+```{r}
+state.disimilarity<-dist(USArrests.1)
+```
+
+```{r}
+dim(state.disimilarity)
+```
+MDS Fit
+```{r}
+mds.1<-cmdscale(state.disimilarity)
+```
+
+```{r}
+summary(mds.1)
+```
+
+```{r}
+mds.1
+```
+```{r}
+plot(mds.1,pch=19)
+abline(h=0,v=0,lty=2)
+USArrests.1<-USArrests[,1:2]%>%scale
+text(mds.1,pos = 4,labels = rownames(USArrests.1),col = "tomato")
+```
+
