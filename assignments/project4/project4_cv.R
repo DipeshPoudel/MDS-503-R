@@ -1,52 +1,30 @@
----
-title: "project 4"
-author: "Dipesh Poudel"
-date: "1/4/2022"
-output:
-  word_document: default
-  html_document: default
-  pdf_document: default
----
-
-```{r setup, include=FALSE}
+## ----setup, include=FALSE--------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE)
-```
 
 
-# K-Fold Cross Validation
-
-## Reading the File
-```{r}
+## --------------------------------------------------------------------------
 library(haven)
 bank_loan_df <- read_sav("P4_bankloan_5000_clients.sav")
-```
 
-## Changing the data type of variables
-```{r}
+
+## --------------------------------------------------------------------------
 bank_loan_df$defaulted_loan<-as.factor(bank_loan_df$defaulted_loan)
 bank_loan_df$education_level<-as.factor(bank_loan_df$education_level)
-```
 
 
-
-## Splitting the data into train and test set
-```{r}
+## --------------------------------------------------------------------------
 set.seed(1234)
 library(caret)
 ind<-sample(2,nrow(bank_loan_df),replace=T,prob = c(0.7,0.3))
 train_data<-bank_loan_df[ind==1,]
 test_data<-bank_loan_df[ind==2,]
-```
 
-## Setting Up the Train Control
-```{r}
+
+## --------------------------------------------------------------------------
 cv_train_control<-trainControl(method = "cv",number = 10)
-```
 
-## Logistic Regression With Cross Validation
 
-### Training Logistic Regression Model
-```{r warning=FALSE}
+## ----warning=FALSE---------------------------------------------------------
 logistic_clf1<-train(defaulted_loan~.,
   data=train_data,
   method="glm",
@@ -54,47 +32,39 @@ logistic_clf1<-train(defaulted_loan~.,
   trControl=cv_train_control
 )
 summary(logistic_clf1)
-```
-### Making the Prediction
-```{r}
+
+
+## --------------------------------------------------------------------------
 predicted_val_log1<-predict(logistic_clf1,newdata = test_data)
-```
 
-### Confusion Matrix for Evaluation
-```{r}
+
+## --------------------------------------------------------------------------
 confusionMatrix(predicted_val_log1,test_data$defaulted_loan)
-```
-```{r}
+
+## --------------------------------------------------------------------------
 plot(varImp(logistic_clf1),main="Variable Importance of Logistic Regression Model",ylab="Features",xlab="Importance")
-```
 
 
-## KNN Model with Cross validation
-### Training KNN Model
-```{r}
+## --------------------------------------------------------------------------
 knn_clf1<-train(defaulted_loan~.,data = train_data,
                method="knn",
                  trControl=cv_train_control
                )
-```
 
-### Getting the Result of the Model
-```{r}
+
+## --------------------------------------------------------------------------
 knn_clf1$result
-```
-### Confusion Matrix for Model Evaluation 
-```{r}
+
+
+## --------------------------------------------------------------------------
 predicted_val_knn1<-predict(knn_clf1,newdata = test_data)
-```
 
-```{r}
+
+## --------------------------------------------------------------------------
 confusionMatrix(predicted_val_knn1,test_data$defaulted_loan)
-```
 
-## Naïve Bayes classifier
 
-### Training the Model
-```{r}
+## --------------------------------------------------------------------------
 library(naivebayes)
 nb_clf1<-train(defaulted_loan~.,
                data=train_data,
@@ -102,49 +72,41 @@ nb_clf1<-train(defaulted_loan~.,
                usepoisson = TRUE,
                trControl=cv_train_control
                )
-```
 
-```{r}
+
+## --------------------------------------------------------------------------
 summary(nb_clf1)
-```
 
-### Making Prediction on Test Data
-```{r}
+
+## --------------------------------------------------------------------------
 predicted_val_nb1<-predict(nb_clf1,newdata = test_data)
-```
 
-### Confusion Matrix for Model Evaluation
 
-```{r}
+## --------------------------------------------------------------------------
 confusionMatrix(predicted_val_nb1,test_data$defaulted_loan)
-```
 
-## Support Vector Machine (SVM) Model
 
-### Training the Model
-```{r}
+## --------------------------------------------------------------------------
 svm_clf1<-train(defaulted_loan~.,
                data=train_data,
                method="svmLinear",
                trControl=cv_train_control,
                )
-```
 
-```{r}
+
+## --------------------------------------------------------------------------
 svm_clf1
-```
 
-### Making the Prediction for test data
-```{r}
+
+## --------------------------------------------------------------------------
 predicted_val_svm1<-predict(svm_clf1,newdata = test_data)
-```
 
-### Confusion Matrix for Model Evaluation
-```{r}
+
+## --------------------------------------------------------------------------
 confusionMatrix(predicted_val_svm1,test_data$defaulted_loan)
-```
-## Decision Tree Model
-```{r}
+
+
+## --------------------------------------------------------------------------
 dtree_clf1<-train(defaulted_loan~.,
                  data = train_data,
                  method="rpart",
@@ -153,21 +115,17 @@ dtree_clf1<-train(defaulted_loan~.,
                  trControl=cv_train_control
                  )
 dtree_clf1
-```
-### Making the Prediction for test data
-```{r}
+
+
+## --------------------------------------------------------------------------
 predicted_val_dtree1<-predict(dtree_clf1,newdata = test_data)
-```
 
-### Confusion Matrix for Model Evaluation
-```{r}
+
+## --------------------------------------------------------------------------
 confusionMatrix(predicted_val_dtree1,test_data$defaulted_loan)
-```
 
-## Artifical Neural Network (ANN) Model
 
-### Training the Model
-```{r}
+## --------------------------------------------------------------------------
 ann_clf1 <- train(defaulted_loan ~ ., data = train_data, 
   method = "nnet",
   preProcess = c("center","scale"), 
@@ -176,15 +134,12 @@ ann_clf1 <- train(defaulted_loan ~ ., data = train_data,
   # tuneGrid = data.frame(size = 0, decay = 0),skip=TRUE, # Technically, this is log-reg
   metric = "Accuracy",
   trControl=cv_train_control)
-```
 
-### Making the Predictions for Test data
-```{r}
+
+## --------------------------------------------------------------------------
 predicted_val_ann1<-predict(ann_clf1,newdata = test_data)
-```
 
-### Confusion Matrix for the Model Evaluation
-```{r}
+
+## --------------------------------------------------------------------------
 confusionMatrix(predicted_val_ann1,test_data$defaulted_loan)
-```
 

@@ -1,0 +1,35 @@
+---
+title: "p44"
+author: "Dipesh Poudel"
+date: "1/5/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(haven)
+bank_loan_df <- read_sav("P4_bankloan_5000_clients.sav")
+```
+
+```{r}
+library(dplyr)
+def_loan<-filter(bank_loan_df,defaulted_loan==1)
+non_def_loan<-filter(bank_loan_df,defaulted_loan==0)
+```
+
+## Summary of Defaulted Loan
+```{r}
+summary(def_loan)
+```
+
+## Summary of Non Defaulted Loan
+
+```{r}
+summary(non_def_loan)
+```
+

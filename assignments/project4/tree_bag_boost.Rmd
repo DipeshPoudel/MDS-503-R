@@ -1,0 +1,122 @@
+---
+title: "Project 4"
+author: "Dipesh Poudel"
+date: "1/5/2022"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Fitting bagging, random forest and extreme gradient boosting tree models and select the best predictive model for train/test validation sets and find the variable importance with table and graph for that model 
+
+# Bagging, Boosting and Random Forest
+## Reading the File
+```{r}
+library(haven)
+bank_loan_df <- read_sav("P4_bankloan_5000_clients.sav")
+```
+
+## Changing the data type of variables
+```{r}
+bank_loan_df$defaulted_loan<-as.factor(bank_loan_df$defaulted_loan)
+bank_loan_df$education_level<-as.factor(bank_loan_df$education_level)
+```
+
+
+
+## Splitting the data into train and test set
+```{r}
+set.seed(1234)
+library(caret)
+ind<-sample(2,nrow(bank_loan_df),replace=T,prob = c(0.7,0.3))
+train_data<-bank_loan_df[ind==1,]
+test_data<-bank_loan_df[ind==2,]
+```
+
+## Bagging Model
+
+### Training the Model
+```{r}
+library("ipred")
+bag_dtree_clf<-bagging(defaulted_loan~.,
+                       data = train_data,
+                       coob=T
+                       )
+```
+
+```{r}
+print(bag_dtree_clf)
+```
+### Making the Prediction
+```{r}
+predicted_bag_tree<-predict(bag_dtree_clf,newdata = test_data)
+```
+
+```{r}
+library(caret)
+confusionMatrix(predicted_bag_tree,test_data$defaulted_loan)
+```
+## Random Forest Model
+
+### Training the Model
+```{r}
+set.seed(1234)
+library(randomForest)
+rf_clf<-randomForest(defaulted_loan~.,
+                       data = train_data)
+```
+
+```{r}
+rf_clf
+```
+### Making the Prediction
+```{r}
+predicted_rf<-predict(rf_clf,newdata = test_data)
+```
+
+```{r}
+confusionMatrix(predicted_rf,test_data$defaulted_loan)
+```
+
+## Extreme Gradient Boosting
+
+### Training the Model
+```{r}
+xglm_clf<-train(defaulted_loan~.,
+                data = train_data,
+                method="xgbTree",
+                verbose=F
+                )
+```
+
+```{r}
+xglm_clf
+```
+### Making the Prediction
+```{r}
+predicted_xgb<-predict(xglm_clf,newdata = test_data)
+```
+
+```{r}
+confusionMatrix(predicted_xgb,test_data$defaulted_loan)
+```
+```{r}
+summary(xglm_clf)
+```
+```{r}
+```
+
+
+```{r}
+varImp(xglm_clf)
+```
+
+
+```{r}
+plot(varImp(xglm_clf))
+```
+
