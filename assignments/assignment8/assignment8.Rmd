@@ -1,0 +1,146 @@
+---
+title: "Assignment 8"
+author: "Dipesh Poudel"
+date: "1/5/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 8
+
+**Use the built-in “mtcars” data of R and do as follows: **
+1. Check the data with head(mtcars) and save a new data as mtcars.subset after dropping two non-numeric (binary) variables for PCA analysis 
+```{r}
+head(mtcars)
+```
+
+
+Removing the column with binary values
+
+```{r}
+mtcars.subset<-subset(mtcars,select = -c(vs,am))
+```
+
+2.Fit PCA in the as mtcars.pca matcars.subset data with cor = TRUE and scores = TRUE) 
+
+```{r}
+mtcars.pca<-princomp(mtcars.subset,cor=TRUE,scores = TRUE)
+```
+3. Get summary of mtcars.pca and interpret standard deviation, proportion of variance carefully 
+
+```{r}
+summary(mtcars.pca)
+```
+4. Get eigenvalue of the components using standard deviation of mtcars.pca and chose the number of components based on Kaiser’s criteria 
+```{r}
+# Eigenvalues are square of standard deviation
+(eigenvalues<-mtcars.pca$sdev^2)
+```
+According to the Kaiser’s rule, PC with Eigenvalue >= 1 (SD-square)
+must be used/retained for the latent variable. So, PC1 and PC1 are two components that we should retain.
+
+5. Get scree plot and chose the number of components best on “first bend” of this plot 
+
+```{r}
+library(ggplot2)
+# calculate total variance explained by each principal component
+var_explained<-mtcars.pca$sdev^2/sum(mtcars.pca$sdev^2)
+
+# Scree Plot
+
+qplot(c(1:9),var_explained)+geom_line()+xlab("Principal Component")+ylab("Variance Explained")+ggtitle("Scree Plot")+ylim(0,1)
+```
+
+In the plot, the first bend is at 2 so 2 is the number of components to choose.
+
+6. Write how many components must be retained based on Kaiser’s rule and/or scree plot 
+Based on the scree plot and Kaiser's rule we have to retain two(2) components.
+
+7. Fit the final PCA model based on the retained components and interpret it carefully 
+```{r}
+library(psych)
+final_pca<-psych::principal(mtcars.subset,nfactors = 2,rotate = "none")
+```
+
+```{r}
+final_pca
+```
+
+The first variable can explain 63% and the second variable can explain 23% variance. These both can explain 86% of the variance. 
+
+8. Get the head of the saved loadings of mtcars.pca and interpret the values carefully 
+
+```{r}
+head(final_pca$loadings)
+```
+
+The `loadings` variable provides the coefficients of linear combination to compute pc1 and pc2 from the data. We can see that the cyl, disp,hp and wt 
+
+9. Retain two components, get their loadings and interpret them carefully 
+
+```{r}
+final_pca$loadings
+```
+
+10. Get biplot of these two component loadings and interpret it carefully 
+
+```{r}
+biplot(final_pca,labels=rownames(mtcars.subset))
+```
+
+11. Get the head of the saved scores of mtcars.pca and interpret carefully 
+```{r}
+head(mtcars.pca$scores)
+```
+
+12 .Get the head of the scores of first two components of mtcars.pca and intepret it carefully 
+```{r}
+head(final_pca$scores)
+```
+
+13. Get biplot of these two component scores and interpret it carefully 
+```{r}
+biplot(final_pca,rownames(mtcars.subset))
+```
+
+14. Get dissimilar distance of all the variables of mtcars data as mtcars.dist 
+```{r}
+mtcars.dist<-dist(mtcars.subset)
+```
+
+15. Fit classical multi-dimensional scaling model with the mtcars.dist in 2-dimensional state as cars.mds.2d 
+
+```{r}
+cars.mds.2d<-cmdscale(mtcars.dist)
+```
+
+```{r}
+summary(cars.mds.2d)
+```
+
+16. Plot the cars.mds.2d and compare it with the biplot of mtcars.pca and interpret it carefully 
+```{r}
+plot(cars.mds.2d,pch=19)
+abline(h=0,v=0)
+text(cars.mds.2d, pos = 4, labels =rownames(mtcars.subset), col ='tomato')
+```
+
+17. Fit classical multi-dimensional scaling model with the mtcars.dist in 3-dimensional state as cars.mds.3d 
+
+```{r}
+cars.mds.3d<-cmdscale(mtcars.dist,k=3)
+```
+
+```{r}
+summary(cars.mds.3d)
+```
+
+
+18. Create a 3-d scatterplot of cars.mds.3d with type = “h”, pch=20 and lty.hplot=2 and interpret it carefully 
+
+19. Create a 3-d scatterplot of cars.mds.3d with type = “h”, pch=20, lty.hplot=2 and color=mtcars$cyl and interpret it carefully 
+
+20. Write a summary comparing PCA and MDS fits done above for mtcars data     
