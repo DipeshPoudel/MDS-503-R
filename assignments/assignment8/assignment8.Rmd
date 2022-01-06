@@ -76,14 +76,19 @@ The first variable can explain 63% and the second variable can explain 23% varia
 ```{r}
 head(final_pca$loadings)
 ```
+The head shows only six rows of data. 
 
-The `loadings` variable provides the coefficients of linear combination to compute pc1 and pc2 from the data. We can see that the cyl, disp,hp and wt 
+The `loadings` variable provides the coefficients of linear combination to compute pc1 and pc2 from the data. Positive loadings values indicates that the variable and the component are positively correlated. Negative loadings values indicate a negative correlation between the variable and the component.
 
 9. Retain two components, get their loadings and interpret them carefully 
 
 ```{r}
 final_pca$loadings
 ```
+Here we are looking at the loadings for all the variables.
+The `loadings` variable provides the coefficients of linear combination to compute pc1 and pc2 from the data. Positive loadings values indicates that the variable and the component are positively correlated. Negative loadings values indicate a negative correlation between the variable and the component. The larger value of cyl indicates the strong effect on PC1.
+
+We can also see that PC1 explains 62% and PC2 explains 23% of variance in the data.
 
 10. Get biplot of these two component loadings and interpret it carefully 
 
@@ -91,20 +96,26 @@ final_pca$loadings
 biplot(final_pca,labels=rownames(mtcars.subset))
 ```
 
+We can see that the mpg and cyl are moving in opposite direction as they have high value but different sign while calculating loadings.
+
 11. Get the head of the saved scores of mtcars.pca and interpret carefully 
 ```{r}
 head(mtcars.pca$scores)
 ```
+The original dataset is projected into the 8 principle componenets.
 
 12 .Get the head of the scores of first two components of mtcars.pca and intepret it carefully 
 ```{r}
 head(final_pca$scores)
 ```
+The original dataset is projected into the final two prinicpal componenet.
 
 13. Get biplot of these two component scores and interpret it carefully 
 ```{r}
 biplot(final_pca,rownames(mtcars.subset))
 ```
+
+Here we can observe that hp, cyl, disp and wt contribute to PC1 with higher values. And mpg which has negative loadings is in opposite direction to PC1 with higher values. Gear and carb has higher contribution to PC2 with positive values and qsec has negative value.
 
 14. Get dissimilar distance of all the variables of mtcars data as mtcars.dist 
 ```{r}
@@ -128,6 +139,8 @@ abline(h=0,v=0)
 text(cars.mds.2d, pos = 4, labels =rownames(mtcars.subset), col ='tomato')
 ```
 
+From the graph we can see that Hornet 4 Drive, Chry etc are in the positive qudrantt whch means they have positive contribution to the first component.
+
 17. Fit classical multi-dimensional scaling model with the mtcars.dist in 3-dimensional state as cars.mds.3d 
 
 ```{r}
@@ -141,6 +154,22 @@ summary(cars.mds.3d)
 
 18. Create a 3-d scatterplot of cars.mds.3d with type = “h”, pch=20 and lty.hplot=2 and interpret it carefully 
 
-19. Create a 3-d scatterplot of cars.mds.3d with type = “h”, pch=20, lty.hplot=2 and color=mtcars$cyl and interpret it carefully 
+```{r}
+library(scatterplot3d)
+cars.mds.3d <- data.frame(cmdscale(mtcars.dist, k = 3))
+scatterplot3d(cars.mds.3d, type = "h", pch = 19, lty.hplot = 2)
+```
 
-20. Write a summary comparing PCA and MDS fits done above for mtcars data     
+19. Create a 3-d scatterplot of cars.mds.3d with type = “h”, pch=20, lty.hplot=2 and color=mtcars$cyl and interpret it carefully 
+```{r}
+library(scatterplot3d)
+cars.mds.3d <- data.frame(cmdscale(mtcars.dist, k = 3))
+scatterplot3d(cars.mds.3d, type = "h", pch = 19, lty.hplot = 2, color = mtcars$cyl)
+```
+
+The plot shows the principle component in 3 dimensions.
+
+20. Write a summary comparing PCA and MDS fits done above for mtcars data
+
+PCA takes original dataset as an input whereas MDS takes pairwise distance between the data points as input. 
+For the mtcars, it shows that two latent variables can be generated from the given dataset that can explain about 86% of variance in the data.
