@@ -2,7 +2,10 @@
 title: "Assignment 9"
 author: "Dipesh Poudel"
 date: "1/8/2022"
-output: html_document
+output:
+  html_document: default
+  word_document: default
+  always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -44,7 +47,7 @@ head(AdultUCI)
 ```{r}
 tail(AdultUCI)
 ```
-
+The AdultUCI is loaded as a dataframe.
 There are 48842 rows(observations) and 15 columns (variables) in the dataset. Variables age fnlwgt,education-num,capital-gain,capital-loss,hours-per-week have integers values. Variables  workclass, education, marital-status, occupation, race,sex, native-country, income and relationship are factors out of them income and education are ordered factors.
 
 ## 3. Remove “fnlwgt” and “education-num” variables from the attached data and explain the logic you have used here
@@ -149,20 +152,24 @@ association.rule<-apriori(Adult,
 summary(association.rule)
 ```
 
-We got 197371 rules. We can also see number of rules with different numbers of items.
+We got 197371 rules. We can also see number of rules with different numbers of items. The rules with support count less than 488 was discarded.
 
 ## 13. Inspect the first 10 rules and interpret it critically. 
 
 ```{r}
 inspect(head(association.rule,10))
 ```
+We can see that there are empty rules as well which is not of interest to us so we can remove them.
+
 ## 14. Remove the empty rules from the “association.rule” and inspect the first 10 rules with interpretations. 
 ```{r}
 association.rule<-apriori(Adult,
   parameter = list(supp=0.01,conf=0.8,maxlen=10,minlen=2,target= "rules")
 )
-inspect(head(association.rule,10))
+inspect(head(association.rule[1:10]))
 ```
+
+We see that there are no more empty rules. We are only seeing rules with one item on LHS and one on RHS.
 
 ## 15. Create a new rule as “capital.gain.rhs.rule” with “capital-gain=None” in the RHS with support of 1%, confidence of 80%, maximum length of 10 and minimum length of 2. 
 ```{r}
@@ -172,13 +179,15 @@ capital.gain.rhs.rule<-apriori(Adult,
                                )
 ```
 
+
 ## 16. Get summary of this rule and interpret it critically. 
 
 ```{r}
 summary(capital.gain.rhs.rule)
 ```
 
-We got set of 35433 rules.
+We filtered out the rules where value of capital_gain is None in RHS. We have 35433 such rules.
+
 
 ## 17. Create a new rule as “hours.per.week.ft.rule” with “hour-per-week=Full-time” in the RHS with support of 1%, confidence of 80%, maximum length of 10 and minimum length of 2. 
 ```{r}
@@ -188,11 +197,15 @@ hours.per.week.ft.rule<-apriori(Adult,
                                )
 ```
 
+
 ## 18. Get summary of this rule and interpret it critically. 
 
 ```{r}
 summary(hours.per.week.ft.rule)
 ```
+
+We have filtered the rules which contains hours_per_week=Full-time. There are 159 such rules. The minimum number of items (lhs+rhs) in the selected rules is 3 we have 3 such rules. Similarly we have 16,48,58,29,5 rules with 4,5,6,7 and 8 items respectively.
+
 
 
 ## 19. Get new rule of “hours.per.week.ft.rule” as “conf.sort.rule” by sorting "hours.per.week.ft.rule" in descending order by “confidence” and inspect the head and tail rules with critical interpretation. 
@@ -203,17 +216,39 @@ conf.sort.rule<-sort(hours.per.week.ft.rule,by="confidence",decreasing = TRUE)
 ```{r}
 inspect(head(conf.sort.rule))
 ```
+We have got 6 rules with highest confidence value above the threshold. Each rule has high confidence and lift>1 which means these rules are of high interest to us.
+
 ```{r}
 inspect(tail(conf.sort.rule))
 ```
+We have got 6 rules with lowest confidence value above the threshold. Even though the value of confidence is lower the value of lift>1 which means these rules are also of high interest to us.
+
 20. Plot the “hours.per.week.ft.rule” with arulesViz package with plot, plot with “two-key plot”, engine=”plotly”, method=graph & engine=htmlwidget and parallel coordinate plot and interpret each graph carefully.  
 ```{r}
 library(arulesViz)
 library(plotly)
-plot(hours.per.week.ft.rule)
-plot(hours.per.week.ft.rule,method = "two-key plot")
-plot(hours.per.week.ft.rule,engine = "plotly")
+plot(hours.per.week.ft.rule,main="Visulizing Rules obtained in hours.per.week.ft.rule")
+```
+This is a scatter plot of support and confidence values. In the graph, lighter the color of the point(dot) in the graph lower the value of lift. 
+
+```{r}
+plot(hours.per.week.ft.rule,method = "two-key plot",main="Two Key Plot")
+```
+
+This graph shows the scatter plot of support and confidence. The different color shows the number of items(lhs+rhs) in the rule.
+
+```{r}
+plot(hours.per.week.ft.rule,engine = "plotly",main="Intercative Plot")
+```
+Using engine="plotly" we have created a interactive scatter plot of support and confidence. The lighter dot means lower value of lift. 
+
+```{r}
 plot(hours.per.week.ft.rule,engine = "htmlwidget",method = "graph")
+```
+Using htmlwidget engine we get the graph of items and rules in graph format.
+
+```{r}
 plot(hours.per.week.ft.rule,method = "paracoord")
 ```
 
+Parallel coordinate system is used for visulizing the multi-dimesion in 2d. This graph does not make much sense in association rule mining.
