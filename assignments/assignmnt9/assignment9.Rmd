@@ -1,0 +1,219 @@
+---
+title: "Assignment 9"
+author: "Dipesh Poudel"
+date: "1/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment 9: Association Rule Mining
+
+**Instructions**
+Use the "AdultUCI" data available in the "arules" package and do as follows in R Script. 
+
+## 1. Attach the AdultUCI data in R 
+```{r}
+library(arules)
+data(AdultUCI)
+```
+2. Check the class, structure, dimension, head and tail of the attached data and write interpretations
+
+### Checking the Class of the dataset
+```{r}
+class(AdultUCI)
+```
+### Checking the Structure of the dataset
+
+```{r}
+str(AdultUCI)
+```
+
+
+### Checking the Dimesions of the dataset
+```{r}
+dim(AdultUCI)
+```
+
+```{r}
+head(AdultUCI)
+```
+
+```{r}
+tail(AdultUCI)
+```
+
+There are 48842 rows(observations) and 15 columns (variables) in the dataset. Variables age fnlwgt,education-num,capital-gain,capital-loss,hours-per-week have integers values. Variables  workclass, education, marital-status, occupation, race,sex, native-country, income and relationship are factors out of them income and education are ordered factors.
+
+## 3. Remove “fnlwgt” and “education-num” variables from the attached data and explain the logic you have used here
+
+```{r}
+# Changing dash(-) sign in column names to underscore(_)
+names(AdultUCI)<-gsub("-","_",names(AdultUCI))
+# Removing the said variables
+AdultUCI<-subset(AdultUCI,select=c(-education_num,-fnlwgt))
+```
+
+First of all the minus(-) sign in column name was replaced with underscore(_) sign since r interprets the minus sign as a operator. Then the columns fnlwgt and education-num variable (changed to education_num) was removed using subset command.
+
+## 4. Convert “age” as ordered factor variables with cuts at 15, 25, 45, 65 and 100 and label it as “Young”, “Middle-aged”, “Senior” and “Old” 
+
+```{r}
+age_labels<-c("Young","Middle-aged","Senior","old")
+AdultUCI$age<-cut(AdultUCI$age,breaks = c(15,25,45,65,100),labels = age_labels)
+AdultUCI$age<-factor(AdultUCI$age,ordered = T,labels = age_labels)
+str(AdultUCI$age)
+```
+
+## 5. Convert the “hours-per-week" as ordered factor variable with cuts at 0, 25, 40, 60, 168 and label it as “Part-time”, “Full-time”, “Over-time” and “Workaholic” 
+```{r}
+hours_labels<-c("Part-time","Full-time","Over-time","Workaholic")
+AdultUCI$hours_per_week<-cut(AdultUCI$hours_per_week,breaks = c(0,25,40,60,168),labels = hours_labels)
+AdultUCI$hours_per_week<-factor(AdultUCI$hours_per_week,ordered = T,labels = hours_labels)
+str(AdultUCI$hours_per_week)
+```
+## 6. Convert the “capital-gain” as ordered factor variable with cuts at –Inf, 0, median and Inf and label it as “None”, “Low” and “High” 
+```{r}
+capital_gain_labels<-c("None","Low","High")
+AdultUCI$capital_gain<-cut(AdultUCI$capital_gain,breaks = c(-Inf,0,median(AdultUCI[AdultUCI$capital_gain>0,]$capital_gain),Inf),labels = capital_gain_labels)
+AdultUCI$capital_gain<-factor(AdultUCI$capital_gain,ordered = T,labels = capital_gain_labels)
+str(AdultUCI$capital_gain)
+```
+
+## 7.  Convert the “capital-loss” as ordered factor variable with cuts at –Inf, 0, median and Inf and label it as “None”, “Low” and “High” 
+
+```{r}
+capital_loss_labels<-c("None","Low","High")
+AdultUCI$capital_loss<-cut(AdultUCI$capital_loss,breaks = c(-Inf,0,median(AdultUCI[AdultUCI$capital_loss>0,]$capital_loss),Inf),labels = capital_loss_labels)
+AdultUCI$capital_loss<-factor(AdultUCI$capital_loss,ordered = T,labels = capital_loss_labels)
+str(AdultUCI$capital_loss)
+```
+## 8. Create transactions of AdultUCI data as “Adult” and check it with “Adult” command 
+
+```{r}
+Adult<-transactions(AdultUCI)
+Adult
+```
+## 9. et summary of the “Adult” and interpret it critically 
+
+```{r}
+summary(Adult)
+```
+
+**From Summary:**
+We have 48842 rows (elements/itemsets/transactions) and 115 columns (items). The most frequent most items have capital_loss=None, capital_gain=None.
+
+## 10. Inspect head and tail of the “Adult” and interpret them carefully 
+
+```{r}
+inspect(head(Adult))
+```
+
+```{r}
+inspect(tail(Adult))
+```
+Each row is given a transactionID and values of each row is converted into a list of items in a transaction.
+
+## 11 Create absolute and relative item frequency plot and color it with RColorBrewer package 
+
+```{r}
+library(RColorBrewer)
+palette = brewer.pal(10,'RdYlBu');
+# Absolute Frequency Plot
+itemFrequencyPlot(Adult,
+                  type="absolute",
+                  topN=10,
+                  col=palette,
+                  main="Absolute Frequency Plot",
+                  xlab="Items"
+                  )
+```
+
+```{r}
+itemFrequencyPlot(Adult,
+                  type="relative",
+                  topN=10,
+                  col=palette,
+                  main="Relative Frequency Plot",
+                  xlab="Items")
+```
+
+## 12. Create an apriori rule as “association.rule” with support = 1%, confidence = 80% and maximum length of the rule as 10. Get summary of this rule and interpret it carefully.
+
+```{r}
+association.rule<-apriori(Adult,
+  parameter = list(supp=0.01,conf=0.8,maxlen=10,target= "rules")
+)
+summary(association.rule)
+```
+
+We got 197371 rules. We can also see number of rules with different numbers of items.
+
+## 13. Inspect the first 10 rules and interpret it critically. 
+
+```{r}
+inspect(head(association.rule,10))
+```
+## 14. Remove the empty rules from the “association.rule” and inspect the first 10 rules with interpretations. 
+```{r}
+association.rule<-apriori(Adult,
+  parameter = list(supp=0.01,conf=0.8,maxlen=10,minlen=2,target= "rules")
+)
+inspect(head(association.rule,10))
+```
+
+## 15. Create a new rule as “capital.gain.rhs.rule” with “capital-gain=None” in the RHS with support of 1%, confidence of 80%, maximum length of 10 and minimum length of 2. 
+```{r}
+capital.gain.rhs.rule<-apriori(Adult,
+                               parameter=list(supp=0.01,conf=0.8,maxlen=10,minlen=2),
+                               appearance=list(default="lhs",rhs="capital_gain=None")
+                               )
+```
+
+## 16. Get summary of this rule and interpret it critically. 
+
+```{r}
+summary(capital.gain.rhs.rule)
+```
+
+We got set of 35433 rules.
+
+## 17. Create a new rule as “hours.per.week.ft.rule” with “hour-per-week=Full-time” in the RHS with support of 1%, confidence of 80%, maximum length of 10 and minimum length of 2. 
+```{r}
+hours.per.week.ft.rule<-apriori(Adult,
+                               parameter=list(supp=0.01,conf=0.8,maxlen=10,minlen=2),
+                               appearance=list(default="lhs",rhs="hours_per_week=Full-time")
+                               )
+```
+
+## 18. Get summary of this rule and interpret it critically. 
+
+```{r}
+summary(hours.per.week.ft.rule)
+```
+
+
+## 19. Get new rule of “hours.per.week.ft.rule” as “conf.sort.rule” by sorting "hours.per.week.ft.rule" in descending order by “confidence” and inspect the head and tail rules with critical interpretation. 
+```{r}
+conf.sort.rule<-sort(hours.per.week.ft.rule,by="confidence",decreasing = TRUE)
+```
+
+```{r}
+inspect(head(conf.sort.rule))
+```
+```{r}
+inspect(tail(conf.sort.rule))
+```
+20. Plot the “hours.per.week.ft.rule” with arulesViz package with plot, plot with “two-key plot”, engine=”plotly”, method=graph & engine=htmlwidget and parallel coordinate plot and interpret each graph carefully.  
+```{r}
+library(arulesViz)
+library(plotly)
+plot(hours.per.week.ft.rule)
+plot(hours.per.week.ft.rule,method = "two-key plot")
+plot(hours.per.week.ft.rule,engine = "plotly")
+plot(hours.per.week.ft.rule,engine = "htmlwidget",method = "graph")
+plot(hours.per.week.ft.rule,method = "paracoord")
+```
+
