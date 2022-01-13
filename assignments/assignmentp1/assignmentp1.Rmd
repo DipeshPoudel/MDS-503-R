@@ -1,0 +1,74 @@
+---
+title: 'Assignment P1: Clustering'
+output:
+  html_document:
+    df_print: paged
+---
+
+## Hierarchical clustering
+
+### Loading the `USArrests` dataset into variable `df` 
+```{r}
+df<-USArrests
+```
+
+### Checking first six columns of data using `head` command
+```{r}
+head(df)
+```
+
+### Creating a Distance Matrix
+
+```{r}
+state_dm<-dist(df)
+```
+
+```{r}
+hir_clust<-hclust(state_dm,method = "complete")
+```
+
+```{r}
+plot(hir_clust,labels = rownames(df), ylab = "Distance")
+```
+
+```{r}
+plot(hir_clust,labels = rownames(df), ylab = "Distance")
+abline(h=200, col="red", lwd=2) 
+abline(h=150, col="blue", lwd=2)
+rect.hclust(hir_clust, k=3)
+```
+
+Using the value of k=3 we now use K-Means clustering algorithm
+
+```{r}
+library(cluster)
+set.seed(1234)
+kmeans_clust<-kmeans(df,centers = 3, nstart = 20)
+```
+```{r}
+kmeans_clust$centers
+```
+
+```{r}
+kmeans_clust$cluster
+```
+
+```{r}
+# Visualizing clusters
+y_kmeans <- kmeans_clust$cluster
+clusplot(df[, c("Murder","Assault")],
+y_kmeans,lines = 0,shade = TRUE, color = TRUE,labels = 2,
+plotchar = FALSE, span = TRUE,
+main = paste("Cluster US States Based on Arrest Data"),
+xlab = 'Murder',
+ylab = 'Assault')
+```
+
+```{r}
+df$cluster<-kmeans_clust$cluster
+```
+
+```{r}
+head(df)
+```
+
